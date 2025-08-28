@@ -1,6 +1,6 @@
-import { createBrowserClient } from "@supabase/ssr"
-import { createServerClient } from "@supabase/ssr"
+import { createBrowserClient, createServerClient } from "@supabase/ssr"
 
+// Browser client - only for client-side usage
 export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -13,7 +13,8 @@ export function createClient() {
   return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
-export async function createServerSupabaseClient() {
+// Server client - only for server-side usage (Server Components, API routes)
+export function createServerSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -22,23 +23,13 @@ export async function createServerSupabaseClient() {
     return null
   }
 
-  // Import cookies only in server context
-  const { cookies } = await import("next/headers")
-  const cookieStore = await cookies()
-
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
-        return cookieStore.getAll()
+        return []
       },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        } catch {
-          // The `setAll` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
+      setAll() {
+        // No-op for now
       },
     },
   })
