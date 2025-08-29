@@ -404,9 +404,9 @@
         <div class="grid-2">
           <div class="field"><label>Fondo</label><input type="color" id="gen-bg" value="#ffffff"></div>
           <div class="field"><label>Color Borde</label><input type="color" id="gen-bc" value="#e2e8f0"></div>
-          <div class="field><label>Grosor Borde (px)</label><input type="number" id="gen-bw" value="0"></div>
-          <div class="field><label>Radio (px)</label><input type="number" id="gen-br" value="8"></div>
-          <div class="field><label>Sombra</label>
+          <div class="field"><label>Grosor Borde (px)</label><input type="number" id="gen-bw" value="0"></div>
+          <div class="field"><label>Radio (px)</label><input type="number" id="gen-br" value="8"></div>
+          <div class="field"><label>Sombra</label>
             <select id="gen-shadow">
               <option value="none">Sin sombra</option>
               <option value="sm">Suave</option>
@@ -414,22 +414,22 @@
               <option value="lg">Fuerte</option>
             </select>
           </div>
-          <div class="field><label>Padding</label><input type="number" id="gen-pad" value="8"></div>
+          <div class="field"><label>Padding</label><input type="number" id="gen-pad" value="8"></div>
         </div>
       </section>
 
       <section class="section" id="sec-texto">
-        <div class="field><label>Contenido</label><textarea id="txt-content" rows="4"></textarea></div>
+        <div class="field"><label>Contenido</label><textarea id="txt-content" rows="4"></textarea></div>
         <div class="grid-2">
-          <div class="field><label>Fuente</label>
+          <div class="field"><label>Fuente</label>
             <select id="txt-font">
               <option>Inter</option><option>Arial</option><option>Georgia</option>
               <option>Tahoma</option><option>Verdana</option><option>Times New Roman</option>
             </select>
           </div>
-          <div class="field><label>Tamaño (px)</label><input type="number" id="txt-size" value="18"></div>
-          <div class="field><label>Color</label><input type="color" id="txt-color" value="#243b53"></div>
-          <div class="field><label>Alineación</label>
+          <div class="field"><label>Tamaño (px)</label><input type="number" id="txt-size" value="18"></div>
+          <div class="field"><label>Color</label><input type="color" id="txt-color" value="#243b53"></div>
+          <div class="field"><label>Alineación</label>
             <select id="txt-align"><option>left</option><option>center</option><option>right</option><option>justify</option></select>
           </div>
         </div>
@@ -442,11 +442,11 @@
       </section>
 
       <section class="section" id="sec-imagen">
-        <div class="field><label>URL</label><input type="text" id="img-src" placeholder="https://..."></div>
+        <div class="field"><label>URL</label><input type="text" id="img-src" placeholder="https://..."></div>
         <label for="image-upload" id="upload-image-label">Subir desde PC</label>
         <input type="file" id="image-upload" accept="image/*">
         <div class="grid-2">
-          <div class="field><label>Fit</label>
+          <div class="field"><label>Fit</label>
             <select id="img-fit"><option value="cover">cover</option><option value="contain">contain</option></select>
           </div>
           <div class="field><label>Alt</label><input type="text" id="img-alt"></div>
@@ -518,7 +518,7 @@
       <button id="fb-dup" title="Duplicar"><i class="fa-regular fa-copy"></i><span>Duplicar</span></button>
       <button id="fb-front" title="Traer al frente"><i class="fa-solid fa-arrow-up"></i><span>Frente</span></button>
       <button id="fb-back" title="Enviar al fondo"><i class="fa-solid fa-arrow-down"></i><span>Fondo</span></button>
-      <button id="fb-del" title="Eliminar"><i class="fa-regular fa-trash-can"></i><span>Eeliminar</span></button>
+      <button id="fb-del" title="Eliminar"><i class="fa-regular fa-trash-can"></i><span>Eliminar</span></button>
     </div>
   </section>
 </main>
@@ -543,7 +543,7 @@
 </div>
 
 <script>
-// Configuración de Supabase - REEMPLAZA CON TUS PROPIOS DATOS
+// Configuración de Supabase - CON TUS DATOS REALES
 const SUPABASE_URL = 'https://lhnluarfjyzheezfrexr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0';
 
@@ -695,227 +695,58 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   function getDefaultContent(page) {
     const pageData = {
       home: `
-        <div class="hero">
-          <h1 class="editable-text">Sistema de Gestión de Residuos Sólidos</h1>
-          <p class="editable-text">La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.</p>
-          <a href="#" class="hero-button">Comenzar</a>
-        </div>
+        <div class="hero"><h1 class="editable-text">Sistema de Gestión de Residuos Sólidos</h1><p class="editable-text">La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.</p><a href="#" class="hero-button">Comenzar</a></div>
         <div class="cards">
-          <div class="card metas disabled" data-page="metas">
-            <div class="card-icon"><i class="fa-solid fa-bullseye"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Gestión de Metas</div>
-              <div class="card-desc editable-text">Establece y sigue tus objetivos de sostenibilidad de manera intuitiva.</div>
-            </div>
-          </div>
-          <div class="card indicadores" data-page="indicadores">
-            <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Dashboard de Indicadores</div>
-              <div class="card-desc editable-text">Visualiza en tiempo real el rendimiento del sistema de gestión.</div>
-            </div>
-          </div>
-          <div class="card avances disabled" data-page="avances">
-            <div class="card-icon"><i class="fa-solid fa-chart-area"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Seguimiento de Avances</div>
-              <div class="card-desc editable-text">Revisa el progreso de tus proyectos de reciclaje y reducción de residuos.</div>
-            </div>
-          </div>
-          <div class="card reportes disabled" data-page="reportes">
-            <div class="card-icon"><i class="fa-solid fa-file-lines"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Generación de Reportes</div>
-              <div class="card-desc editable-text">Crea y exporta informes detallados para auditorías o análisis.</div>
-            </div>
-          </div>
-          <div class="card formularios" data-page="formularios">
-            <div class="card-icon"><i class="fa-solid fa-file-alt"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Formularios de Datos</div>
-              <div class="card-desc editable-text">Ingresa y gestiona datos a través de formularios personalizados.</div>
-            </div>
-          </div>
+          <div class="card metas disabled" data-page="metas"><div class="card-icon"><i class="fa-solid fa-bullseye"></i></div><div class="card-content"><div class="card-title editable-text">Gestión de Metas</div><div class="card-desc editable-text">Establece y sigue tus objetivos de sostenibilidad de manera intuitiva.</div></div></div>
+          <div class="card indicadores" data-page="indicadores"><div class="card-icon"><i class="fa-solid fa-chart-line"></i></div><div class="card-content"><div class="card-title editable-text">Dashboard de Indicadores</div><div class="card-desc editable-text">Visualiza en tiempo real el rendimiento del sistema de gestión.</div></div></div>
+          <div class="card avances disabled" data-page="avances"><div class="card-icon"><i class="fa-solid fa-chart-area"></i></div><div class="card-content"><div class="card-title editable-text">Seguimiento de Avances</div><div class="card-desc editable-text">Revisa el progreso de tus proyectos de reciclaje y reducción de residuos.</div></div></div>
+          <div class="card reportes disabled" data-page="reportes"><div class="card-icon"><i class="fa-solid fa-file-lines"></i></div><div class="card-content"><div class="card-title editable-text">Generación de Reportes</div><div class="card-desc editable-text">Crea y exporta informes detallados para auditorías o análisis.</div></div></div>
+          <div class="card formularios" data-page="formularios"><div class="card-icon"><i class="fa-solid fa-file-alt"></i></div><div class="card-content"><div class="card-title editable-text">Formularios de Datos</div><div class="card-desc editable-text">Ingresa y gestiona datos a través de formularios personalizados.</div></div></div>
         </div>
       `,
       indicadores: `
-        <div class="hero">
-          <h1 class="editable-text">Dashboard de Indicadores Clave</h1>
-          <p class="editable-text">Aquí podrás ver todos los indicadores de gestión de residuos en tiempo real. Utiliza las herramientas de edición para añadir gráficos y métricas.</p>
-        </div>
+        <div class="hero"><h1 class="editable-text">Dashboard de Indicadores Clave</h1><p class="editable-text">Aquí podrás ver todos los indicadores de gestión de residuos en tiempo real. Utiliza las herramientas de edición para añadir gráficos y métricas.</p></div>
         <div class="cards">
-          <div class="card metas">
-            <div class="card-icon"><i class="fa-solid fa-recycle"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Métricas de Reciclaje</div>
-              <div class="card-desc editable-text">Cantidad de material reciclado por mes, tasa de recuperación, etc.</div>
-            </div>
-          </div>
-          <div class="card indicadores">
-            <div class="card-icon"><i class="fa-solid fa-dollar-sign"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Indicadores Financieros</div>
-              <div class="card-desc editable-text">Costos de gestión, ingresos por ventas de material, etc.</div>
-            </div>
-          </div>
-          <div class="card avances">
-            <div class="card-icon"><i class="fa-solid fa-road"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Rendimiento Operacional</div>
-              <div class="card-desc editable-text">Eficiencia de rutas de recolección, tiempo de procesamiento, etc.</div>
-            </div>
-          </div>
-          <div class="card reportes">
-            <div class="card-icon"><i class="fa-solid fa-tree"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Impacto Ambiental</div>
-              <div class="card-desc editable-text">Reducción de emisiones de CO2, ahorro de agua, etc.</div>
-            </div>
-          </div>
+          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-recycle"></i></div><div class="card-content"><div class="card-title editable-text">Métricas de Reciclaje</div><div class="card-desc editable-text">Cantidad de material reciclado por mes, tasa de recuperación, etc.</div></div></div>
+          <div class="card indicadores"><div class="card-icon"><i class="fa-solid fa-dollar-sign"></i></div><div class="card-content"><div class="card-title editable-text">Indicadores Financieros</div><div class="card-desc editable-text">Costos de gestión, ingresos por ventas de material, etc.</div></div></div>
+          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-road"></i></div><div class="card-content"><div class="card-title editable-text">Rendimiento Operacional</div><div class="card-desc editable-text">Eficiencia de rutas de recolección, tiempo de procesamiento, etc.</div></div></div>
+          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-tree"></i></div><div class="card-content"><div class="card-title editable-text">Impacto Ambiental</div><div class="card-desc editable-text">Reducción de emisiones de CO2, ahorro de agua, etc.</div></div></div>
         </div>
       `,
       metas: `
-        <div class="hero">
-          <h1 class="editable-text">Gestión de Metas de Sostenibilidad</h1>
-          <p class="editable-text">Define, monitorea y ajusta tus metas ambientales. Un paso a la vez, hacia un futuro más sostenible.</p>
-        </div>
+        <div class="hero"><h1 class="editable-text">Gestión de Metas de Sostenibilidad</h1><p class="editable-text">Define, monitorea y ajusta tus metas ambientales. Un paso a la vez, hacia un futuro más sostenible.</p></div>
         <div class="cards">
-          <div class="card metas">
-            <div class="card-icon"><i class="fa-solid fa-minimize"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Metas de Reducción</div>
-              <div class="card-desc editable-text">Objetivos para reducir el volumen de residuos generados.</div>
-            </div>
-          </div>
-          <div class="card indicadores">
-            <div class="card-icon"><i class="fa-solid fa-trash-arrow-up"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Metas de Reciclaje</div>
-              <div class="card-desc editable-text">Aumentar la tasa de reciclaje en un porcentaje específico.</div>
-            </div>
-          </div>
-          <div class="card avances">
-            <div class="card-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Metas de Capacitación</div>
-              <div class="card-desc editable-text">Número de empleados o comunidades capacitadas en gestión de residuos.</div>
-            </div>
-          </div>
-          <div class="card reportes">
-            <div class="card-icon"><i class="fa-solid fa-award"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Metas de Certificación</div>
-              <div class="card-desc editable-text">Lograr certificaciones de gestión ambiental.</div>
-            </div>
-          </div>
+          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-minimize"></i></div><div class="card-content"><div class="card-title editable-text">Metas de Reducción</div><div class="card-desc editable-text">Objetivos para reducir el volumen de residuos generados.</div></div></div>
+          <div class="card indicadores"><div class="card-icon"><i class="fa-solid fa-trash-arrow-up"></i></div><div class="card-content"><div class="card-title editable-text">Metas de Reciclaje</div><div class="card-desc editable-text">Aumentar la tasa de reciclaje en un porcentaje específico.</div></div></div>
+          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-chalkboard-user"></i></div><div class="card-content"><div class="card-title editable-text">Metas de Capacitación</div><div class="card-desc editable-text">Número de empleados o comunidades capacitadas en gestión de residuos.</div></div></div>
+          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-award"></i></div><div class="card-content"><div class="card-title editable-text">Metas de Certificación</div><div class="card-desc editable-text">Lograr certificaciones de gestión ambiental.</div></div></div>
         </div>
       `,
       avances: `
-        <div class="hero">
-          <h1 class="editable-text">Progreso y Avances del Proyecto</h1>
-          <p class="editable-text">Visualiza el avance de tus iniciativas y proyectos. Celebra tus logros y ajusta lo que sea necesario para alcanzar el éxito.</p>
-        </div>
+        <div class="hero"><h1 class="editable-text">Progreso y Avances del Proyecto</h1><p class="editable-text">Visualiza el avance de tus iniciativas y proyectos. Celebra tus logros y ajusta lo que sea necesario para alcanzar el éxito.</p></div>
         <div class="cards">
-          <div class="card metas">
-            <div class="card-icon"><i class="fa-solid fa-tasks"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Progreso en Proyectos</div>
-              <div class="card-desc editable-text">Seguimiento del estado de proyectos específicos.</div>
-            </div>
-          </div>
-          <div class="card indicadores">
-            <div class="card-icon"><i class="fa-solid fa-star"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Hitos Alcanzados</div>
-              <div class="card-desc editable-text">Registro de logros importantes y acuerdos.</div>
-            </div>
-          </div>
-          <div class="card avances">
-            <div class="card-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Análisis de Desempeño</div>
-              <div class="card-desc editable-text">Evaluación del rendimiento a lo largo del tiempo.</div>
-            </div>
-          </div>
-          <div class="card reportes">
-            <div class="card-icon"><i class="fa-solid fa-users"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Información de Equipo</div>
-              <div class="card-desc editable-text">Colabora y coordina con tu equipo.</div>
-            </div>
-          </div>
+          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-tasks"></i></div><div class="card-content"><div class="card-title editable-text">Progreso en Proyectos</div><div class="card-desc editable-text">Seguimiento del estado de proyectos específicos.</div></div></div>
+          <div class="card indicadores"><div class="card-icon"><i class="fa-solid fa-star"></i></div><div class="card-content"><div class="card-title editable-text">Hitos Alcanzados</div><div class="card-desc editable-text">Registro de logros importantes y acuerdos.</div></div></div>
+          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-arrow-trend-up"></i></div><div class="card-content"><div class="card-title editable-text">Análisis de Desempeño</div><div class="card-desc editable-text">Evaluación del rendimiento a lo largo del tiempo.</div></div></div>
+          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-users"></i></div><div class="card-content"><div class="card-title editable-text">Información de Equipo</div><div class="card-desc editable-text">Colabora y coordina con tu equipo.</div></div></div>
         </div>
       `,
       reportes: `
-        <div class="hero">
-          <h1 class="editable-text">Generación y Descarga de Reportes</h1>
-          <p class="editable-text">Crea informes personalizados para tus stakeholders o para auditorías internas. Todos los datos, a tu alcance.</p>
-        </div>
+        <div class="hero"><h1 class="editable-text">Generación y Descarga de Reportes</h1><p class="editable-text">Crea informes personalizados para tus stakeholders o para auditorías internas. Todos los datos, a tu alcance.</p></div>
         <div class="cards">
-          <div class="card metas">
-            <div class="card-icon"><i class="fa-solid fa-calendar-alt"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Reportes Mensuales</div>
-              <div class="card-desc editable-text">Genera informes automáticos con datos del último mes.</div>
-            </div>
-          </div>
-          <div class="card indicadores">
-            <div class="card-icon"><i class="fa-solid fa-chart-pie"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Reportes Financieros</div>
-              <div class="card-desc editable-text">Accede a reportes detallados sobre ingresos y gastos.</div>
-            </div>
-          </div>
-          <div class="card avances">
-            <div class="card-icon"><i class="fa-solid fa-balance-scale"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Reportes de Cumplimiento</div>
-              <div class="card-desc editable-text">Prepara informes para cumplir con regulaciones y normativas.</div>
-            </div>
-          </div>
-          <div class="card reportes">
-            <div class="card-icon"><i class="fa-solid fa-cog"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Reportes Personalizados</div>
-              <div class="card-desc editable-text">Crea tus propios informes desde cero con los datos que necesites.</div>
-            </div>
-          </div>
+          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-calendar-alt"></i></div><div class="card-content"><div class="card-title editable-text">Reportes Mensuales</div><div class="card-desc editable-text">Genera informes automáticos con datos del último mes.</div></div></div>
+          <div class="card indicadores"><div class="card-icon"><i class="fa-solid fa-chart-pie"></i></div><div class="card-content"><div class="card-title editable-text">Reportes Financieros</div><div class="card-desc editable-text">Accede a reportes detallados sobre ingresos y gastos.</div></div></div>
+          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-balance-scale"></i></div><div class="card-content"><div class="card-title editable-text">Reportes de Cumplimiento</div><div class="card-desc editable-text">Prepara informes para cumplir con regulaciones y normativas.</div></div></div>
+          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-cog"></i></div><div class="card-content"><div class="card-title editable-text">Reportes Personalizados</div><div class="card-desc editable-text">Crea tus propios informes desde cero con los datos que necesites.</div></div></div>
         </div>
       `,
       formularios: `
-        <div class="hero">
-          <h1 class="editable-text">Gestión y Creación de Formularios</h1>
-          <p class="editable-text">Diseña, despliega y administra formularios para la recolección de datos en campo. Agiliza la entrada de información.</p>
-        </div>
+        <div class="hero"><h1 class="editable-text">Gestión y Creación de Formularios</h1><p class="editable-text">Diseña, despliega y administra formularios para la recolección de datos en campo. Agiliza la entrada de información.</p></div>
         <div class="cards">
-          <div class="card formularios">
-            <div class="card-icon"><i class="fa-solid fa-clipboard-check"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Formularios de Inspección</div>
-              <div class="card-desc editable-text">Crea formularios para inspecciones de calidad o seguridad en las rutas.</div>
-            </div>
-          </div>
-          <div class="card reportes">
-            <div class="card-icon"><i class="fa-solid fa-exclamation-triangle"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Reporte de Incidentes</div>
-              <div class="card-desc editable-text">Permite a los técnicos registrar incidentes o anomalías al instante.</div>
-            </div>
-          </div>
-          <div class="card avances">
-            <div class="card-icon"><i class="fa-solid fa-smile"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Encuestas de Satisfacción</div>
-              <div class="card-desc editable-text">Recopila feedback de comunidades o clientes de forma sencilla.</div>
-            </div>
-          </div>
-          <div class="card metas">
-            <div class="card-icon"><i class="fa-solid fa-truck-loading"></i></div>
-            <div class="card-content">
-              <div class="card-title editable-text">Registro de Recolección</div>
-              <div class="card-desc editable-text">Un formulario rápido para registrar el tipo y peso de los residuos recolectados.</div>
-            </div>
-          </div>
+          <div class="card formularios"><div class="card-icon"><i class="fa-solid fa-clipboard-check"></i></div><div class="card-content"><div class="card-title editable-text">Formularios de Inspección</div><div class="card-desc editable-text">Crea formularios para inspecciones de calidad o seguridad en las rutas.</div></div></div>
+          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-exclamation-triangle"></i></div><div class="card-content"><div class="card-title editable-text">Reporte de Incidentes</div><div class="card-desc editable-text">Permite a los técnicos registrar incidentes o anomalías al instante.</div></div></div>
+          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-smile"></i></div><div class="card-content"><div class="card-title editable-text">Encuestas de Satisfacción</div><div class="card-desc editable-text">Recopila feedback de comunidades o clientes de forma sencilla.</div></div></div>
+          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-truck-loading"></i></div><div class="card-content"><div class="card-title editable-text">Registro de Recolección</div><div class="card-desc editable-text">Un formulario rápido para registrar el tipo y peso de los residuos recolectados.</div></div></div>
         </div>
       `
     };
@@ -1522,5 +1353,4 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 })();
 </script>
 </body>
-
 </html>
