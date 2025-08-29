@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Gestión de Residuos Sólidos — Editor Pro</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.3/css/all.min.css">
-<!-- Incluir Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --primary:#2e7d32;
@@ -449,30 +447,30 @@
           <div class="field"><label>Fit</label>
             <select id="img-fit"><option value="cover">cover</option><option value="contain">contain</option></select>
           </div>
-          <div class="field><label>Alt</label><input type="text" id="img-alt"></div>
-          <div class="field><label>Ancho (px)</label><input type="number" id="img-w"></div>
-          <div class="field><label>Alto (px)</label><input type="number" id="img-h"></div>
+          <div class="field"><label>Alt</label><input type="text" id="img-alt"></div>
+          <div class="field"><label>Ancho (px)</label><input type="number" id="img-w"></div>
+          <div class="field"><label>Alto (px)</label><input type="number" id="img-h"></div>
         </div>
       </section>
 
       <section class="section" id="sec-video">
-        <div class="field><label>URL (YouTube)</label><input type="text" id="vid-src" placeholder="Pega la URL del video"></div>
+        <div class="field"><label>URL (YouTube)</label><input type="text" id="vid-src" placeholder="Pega la URL del video"></div>
         <input type="file" id="video-upload" style="display:none" accept="video/*">
         <button class="action" id="upload-btn">Subir desde PC</button>
         <div class="grid-2">
-          <div class="field><label>Ancho (px)</label><input type="number" id="vid-w"></div>
-          <div class="field><label>Alto (px)</label><input type="number" id="vid-h"></div>
+          <div class="field"><label>Ancho (px)</label><input type="number" id="vid-w"></div>
+          <div class="field"><label>Alto (px)</label><input type="number" id="vid-h"></div>
         </div>
       </section>
 
       <section class="section" id="sec-boton">
         <div class="grid-2">
-          <div class="field><label>Texto</label><input type="text" id="btn-text"></div>
-          <div class="field><label>Enlace</label><input type="text" id="btn-href"></div>
-          <div class="field><label>Fondo</label><input type="color" id="btn-bg" value="#0288d1"></div>
-          <div class="field><label>Texto</label><input type="color" id="btn-fg" value="#ffffff"></div>
-          <div class="field><label>Radio (px)</label><input type="number" id="btn-radius" value="12"></div>
-          <div class="field><label>Padding (px)</label><input type="number" id="btn-pad" value="10"></div>
+          <div class="field"><label>Texto</label><input type="text" id="btn-text"></div>
+          <div class="field"><label>Enlace</label><input type="text" id="btn-href"></div>
+          <div class="field"><label>Fondo</label><input type="color" id="btn-bg" value="#0288d1"></div>
+          <div class="field"><label>Texto</label><input type="color" id="btn-fg" value="#ffffff"></div>
+          <div class="field"><label>Radio (px)</label><input type="number" id="btn-radius" value="12"></div>
+          <div class="field"><label>Padding (px)</label><input type="number" id="btn-pad" value="10"></div>
         </div>
       </section>
 
@@ -484,17 +482,17 @@
           <button class="action" id="tbl-del-col">- Columna</button>
         </div>
         <div class="grid-2">
-          <div class="field><label>Borde color</label><input type="color" id="tbl-bc" value="#94a3b8"></div>
-          <div class="field><label>Borde (px)</label><input type="number" id="tbl-bw" value="1"></div>
-          <div class="field><label>Color celdas</label><input type="color" id="tbl-cell" value="#ffffff"></div>
-          <div class="field><label>Padding celda</label><input type="number" id="tbl-pad" value="8"></div>
+          <div class="field"><label>Borde color</label><input type="color" id="tbl-bc" value="#94a3b8"></div>
+          <div class="field"><label>Borde (px)</label><input type="number" id="tbl-bw" value="1"></div>
+          <div class="field"><label>Color celdas</label><input type="color" id="tbl-cell" value="#ffffff"></div>
+          <div class="field"><label>Padding celda</label><input type="number" id="tbl-pad" value="8"></div>
         </div>
       </section>
 
       <section class="section" id="sec-lienzo">
         <div class="grid-2">
-          <div class="field><label>Grid (px)</label><input type="number" id="canvas-grid" value="20"></div>
-          <div class="field><label>Snap a grid</label>
+          <div class="field"><label>Grid (px)</label><input type="number" id="canvas-grid" value="20"></div>
+          <div class="field"><label>Snap a grid</label>
             <select id="canvas-snap"><option value="on">on</option><option value="off">off</select>
           </div>
         </div>
@@ -543,15 +541,53 @@
 </div>
 
 <script>
-// Configuración de Supabase - CON TUS DATOS REALES
-const SUPABASE_URL = 'https://lhnluarfjyzheezfrexr.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0';
-
-// Inicializar Supabase
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 (() => {
+    const NEXT_PUBLIC_SUPABASE_URL = "https://lhnluarfjyzheezfrexr.supabase.co";
+    const NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
+
+    async function saveToSupabase(page, html) {
+    try {
+        const res = await fetch(`${NEXT_PUBLIC_SUPABASE_URL}/rest/v1/paginas`, {
+            method: "POST",
+            headers: {
+                "apikey": NEXT_PUBLIC_SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates"
+            },
+            body: JSON.stringify({ nombre: page, contenido_html: html })
+        });
+
+        if (!res.ok) {
+            // Si la respuesta no es exitosa, lanza un error
+            throw new Error(`Error de Supabase: ${res.status} ${res.statusText}`);
+        }
+
+        console.log("✅ Guardado en Supabase");
+    } catch (err) {
+        console.error("❌ Error guardando en Supabase", err);
+    }
+}
+
+    async function loadFromSupabase(page) {
+        try {
+            const res = await fetch(`${NEXT_PUBLIC_SUPABASE_URL}/rest/v1/paginas?nombre=eq.${page}&select=contenido_html`, {
+                headers: {
+                    "apikey": NEXT_PUBLIC_SUPABASE_ANON_KEY,
+                    "Authorization": `Bearer ${NEXT_PUBLIC_SUPABASE_ANON_KEY}`
+                }
+            });
+            const data = await res.json();
+            if (data.length > 0) {
+                return data[0].contenido_html;
+            }
+        } catch (err) {
+            console.error("❌ Error cargando de Supabase", err);
+        }
+        return null;
+    }
+
+
   const qs = sel => document.querySelector(sel);
   const qsa = sel => Array.from(document.querySelectorAll(sel));
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -577,202 +613,22 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let currentEditable = null;
   let currentPage = 'home';
   const pageContent = {};
-  const history = [];
-  const redo = [];
-  let saveTimeout;
 
-  // Inicializar la aplicación
-  initApp();
+  /* ======= NAVIGATION ======= */
+  navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const pageName = link.dataset.page;
+          navigateToPage(pageName);
+      });
+  });
 
-  async function initApp() {
-    // Verificar si hay una sesión activa
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-      // Obtener información del usuario
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      handleLoginSuccess(user.email || 'Usuario', user.id);
-    }
-    
-    // Cargar contenido desde Supabase
-    await loadContentFromSupabase();
-    
-    // Cargar la página de inicio
-    loadPageContent('home');
-    
-    // Escuchar cambios en la autenticación
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        const user = session.user;
-        handleLoginSuccess(user.email || 'Usuario', user.id);
-      } else if (event === 'SIGNED_OUT') {
-        handleLogout();
-      }
-    });
-  }
-
-  // Función para cargar contenido desde Supabase
-  async function loadContentFromSupabase() {
-    try {
-      const { data, error } = await supabaseClient
-        .from('page_content')
-        .select('*');
-      
-      if (error) {
-        console.error('Error al cargar contenido:', error);
-        return;
-      }
-      
-      // Organizar el contenido por páginas
-      if (data && data.length > 0) {
-        data.forEach(item => {
-          pageContent[item.page] = item.content;
-        });
-      } else {
-        // Inicializar con contenido por defecto si no hay datos
-        initializeDefaultContent();
-      }
-    } catch (error) {
-      console.error('Error al cargar contenido:', error);
-      initializeDefaultContent();
-    }
-  }
-
-  // Función para inicializar contenido por defecto
-  function initializeDefaultContent() {
-    pageContent.home = getDefaultContent('home');
-    pageContent.indicadores = getDefaultContent('indicadores');
-    pageContent.metas = getDefaultContent('metas');
-    pageContent.avances = getDefaultContent('avances');
-    pageContent.reportes = getDefaultContent('reportes');
-    pageContent.formularios = getDefaultContent('formularios');
-  }
-
-  // Función para guardar contenido en Supabase
-  async function saveContentToSupabase() {
-    try {
-      const contentToSave = {
-        page: currentPage,
-        content: canvas.innerHTML,
-        updated_at: new Date().toISOString()
-      };
-      
-      // Verificar si ya existe contenido para esta página
-      const { data: existingData } = await supabaseClient
-        .from('page_content')
-        .select('id')
-        .eq('page', currentPage)
-        .single();
-      
-      let error;
-      if (existingData) {
-        // Actualizar registro existente
-        const { error: updateError } = await supabaseClient
-          .from('page_content')
-          .update(contentToSave)
-          .eq('page', currentPage);
-        error = updateError;
-      } else {
-        // Insertar nuevo registro
-        const { error: insertError } = await supabaseClient
-          .from('page_content')
-          .insert([contentToSave]);
-        error = insertError;
-      }
-      
-      if (error) {
-        console.error('Error al guardar contenido:', error);
-      } else {
-        console.log('Contenido guardado exitosamente');
-        // Actualizar el contenido local
-        pageContent[currentPage] = canvas.innerHTML;
-      }
-    } catch (error) {
-      console.error('Error al guardar contenido:', error);
-    }
-  }
-
-  // Función para obtener contenido por defecto
-  function getDefaultContent(page) {
-    const pageData = {
-      home: `
-        <div class="hero"><h1 class="editable-text">Sistema de Gestión de Residuos Sólidos</h1><p class="editable-text">La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.</p><a href="#" class="hero-button">Comenzar</a></div>
-        <div class="cards">
-          <div class="card metas disabled" data-page="metas"><div class="card-icon"><i class="fa-solid fa-bullseye"></i></div><div class="card-content"><div class="card-title editable-text">Gestión de Metas</div><div class="card-desc editable-text">Establece y sigue tus objetivos de sostenibilidad de manera intuitiva.</div></div></div>
-          <div class="card indicadores" data-page="indicadores"><div class="card-icon"><i class="fa-solid fa-chart-line"></i></div><div class="card-content"><div class="card-title editable-text">Dashboard de Indicadores</div><div class="card-desc editable-text">Visualiza en tiempo real el rendimiento del sistema de gestión.</div></div></div>
-          <div class="card avances disabled" data-page="avances"><div class="card-icon"><i class="fa-solid fa-chart-area"></i></div><div class="card-content"><div class="card-title editable-text">Seguimiento de Avances</div><div class="card-desc editable-text">Revisa el progreso de tus proyectos de reciclaje y reducción de residuos.</div></div></div>
-          <div class="card reportes disabled" data-page="reportes"><div class="card-icon"><i class="fa-solid fa-file-lines"></i></div><div class="card-content"><div class="card-title editable-text">Generación de Reportes</div><div class="card-desc editable-text">Crea y exporta informes detallados para auditorías o análisis.</div></div></div>
-          <div class="card formularios" data-page="formularios"><div class="card-icon"><i class="fa-solid fa-file-alt"></i></div><div class="card-content"><div class="card-title editable-text">Formularios de Datos</div><div class="card-desc editable-text">Ingresa y gestiona datos a través de formularios personalizados.</div></div></div>
-        </div>
-      `,
-      indicadores: `
-        <div class="hero"><h1 class="editable-text">Dashboard de Indicadores Clave</h1><p class="editable-text">Aquí podrás ver todos los indicadores de gestión de residuos en tiempo real. Utiliza las herramientas de edición para añadir gráficos y métricas.</p></div>
-        <div class="cards">
-          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-recycle"></i></div><div class="card-content"><div class="card-title editable-text">Métricas de Reciclaje</div><div class="card-desc editable-text">Cantidad de material reciclado por mes, tasa de recuperación, etc.</div></div></div>
-          <div class="card indicadores"><div class="card-icon"><i class="fa-solid fa-dollar-sign"></i></div><div class="card-content"><div class="card-title editable-text">Indicadores Financieros</div><div class="card-desc editable-text">Costos de gestión, ingresos por ventas de material, etc.</div></div></div>
-          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-road"></i></div><div class="card-content"><div class="card-title editable-text">Rendimiento Operacional</div><div class="card-desc editable-text">Eficiencia de rutas de recolección, tiempo de procesamiento, etc.</div></div></div>
-          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-tree"></i></div><div class="card-content"><div class="card-title editable-text">Impacto Ambiental</div><div class="card-desc editable-text">Reducción de emisiones de CO2, ahorro de agua, etc.</div></div></div>
-        </div>
-      `,
-      metas: `
-        <div class="hero"><h1 class="editable-text">Gestión de Metas de Sostenibilidad</h1><p class="editable-text">Define, monitorea y ajusta tus metas ambientales. Un paso a la vez, hacia un futuro más sostenible.</p></div>
-        <div class="cards">
-          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-minimize"></i></div><div class="card-content"><div class="card-title editable-text">Metas de Reducción</div><div class="card-desc editable-text">Objetivos para reducir el volumen de residuos generados.</div></div></div>
-          <div class="card indicadores"><div class="card-icon"><i class="fa-solid fa-trash-arrow-up"></i></div><div class="card-content"><div class="card-title editable-text">Metas de Reciclaje</div><div class="card-desc editable-text">Aumentar la tasa de reciclaje en un porcentaje específico.</div></div></div>
-          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-chalkboard-user"></i></div><div class="card-content"><div class="card-title editable-text">Metas de Capacitación</div><div class="card-desc editable-text">Número de empleados o comunidades capacitadas en gestión de residuos.</div></div></div>
-          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-award"></i></div><div class="card-content"><div class="card-title editable-text">Metas de Certificación</div><div class="card-desc editable-text">Lograr certificaciones de gestión ambiental.</div></div></div>
-        </div>
-      `,
-      avances: `
-        <div class="hero"><h1 class="editable-text">Progreso y Avances del Proyecto</h1><p class="editable-text">Visualiza el avance de tus iniciativas y proyectos. Celebra tus logros y ajusta lo que sea necesario para alcanzar el éxito.</p></div>
-        <div class="cards">
-          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-tasks"></i></div><div class="card-content"><div class="card-title editable-text">Progreso en Proyectos</div><div class="card-desc editable-text">Seguimiento del estado de proyectos específicos.</div></div></div>
-          <div class="card indicadores"><div class="card-icon"><i class="fa-solid fa-star"></i></div><div class="card-content"><div class="card-title editable-text">Hitos Alcanzados</div><div class="card-desc editable-text">Registro de logros importantes y acuerdos.</div></div></div>
-          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-arrow-trend-up"></i></div><div class="card-content"><div class="card-title editable-text">Análisis de Desempeño</div><div class="card-desc editable-text">Evaluación del rendimiento a lo largo del tiempo.</div></div></div>
-          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-users"></i></div><div class="card-content"><div class="card-title editable-text">Información de Equipo</div><div class="card-desc editable-text">Colabora y coordina con tu equipo.</div></div></div>
-        </div>
-      `,
-      reportes: `
-        <div class="hero"><h1 class="editable-text">Generación y Descarga de Reportes</h1><p class="editable-text">Crea informes personalizados para tus stakeholders o para auditorías internas. Todos los datos, a tu alcance.</p></div>
-        <div class="cards">
-          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-calendar-alt"></i></div><div class="card-content"><div class="card-title editable-text">Reportes Mensuales</div><div class="card-desc editable-text">Genera informes automáticos con datos del último mes.</div></div></div>
-          <div class="card indicadores"><div class="card-icon"><i class="fa-solid fa-chart-pie"></i></div><div class="card-content"><div class="card-title editable-text">Reportes Financieros</div><div class="card-desc editable-text">Accede a reportes detallados sobre ingresos y gastos.</div></div></div>
-          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-balance-scale"></i></div><div class="card-content"><div class="card-title editable-text">Reportes de Cumplimiento</div><div class="card-desc editable-text">Prepara informes para cumplir con regulaciones y normativas.</div></div></div>
-          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-cog"></i></div><div class="card-content"><div class="card-title editable-text">Reportes Personalizados</div><div class="card-desc editable-text">Crea tus propios informes desde cero con los datos que necesites.</div></div></div>
-        </div>
-      `,
-      formularios: `
-        <div class="hero"><h1 class="editable-text">Gestión y Creación de Formularios</h1><p class="editable-text">Diseña, despliega y administra formularios para la recolección de datos en campo. Agiliza la entrada de información.</p></div>
-        <div class="cards">
-          <div class="card formularios"><div class="card-icon"><i class="fa-solid fa-clipboard-check"></i></div><div class="card-content"><div class="card-title editable-text">Formularios de Inspección</div><div class="card-desc editable-text">Crea formularios para inspecciones de calidad o seguridad en las rutas.</div></div></div>
-          <div class="card reportes"><div class="card-icon"><i class="fa-solid fa-exclamation-triangle"></i></div><div class="card-content"><div class="card-title editable-text">Reporte de Incidentes</div><div class="card-desc editable-text">Permite a los técnicos registrar incidentes o anomalías al instante.</div></div></div>
-          <div class="card avances"><div class="card-icon"><i class="fa-solid fa-smile"></i></div><div class="card-content"><div class="card-title editable-text">Encuestas de Satisfacción</div><div class="card-desc editable-text">Recopila feedback de comunidades o clientes de forma sencilla.</div></div></div>
-          <div class="card metas"><div class="card-icon"><i class="fa-solid fa-truck-loading"></i></div><div class="card-content"><div class="card-title editable-text">Registro de Recolección</div><div class="card-desc editable-text">Un formulario rápido para registrar el tipo y peso de los residuos recolectados.</div></div></div>
-        </div>
-      `
-    };
-    
-    return pageData[page] || '<div class="hero"><h1>Página no encontrada</h1><p>La página solicitada no existe.</p></div>';
-  }
-
-  // Función para cargar el contenido de una página
-  function loadPageContent(pageName) {
+  function navigateToPage(pageName) {
     if (currentPage === pageName) return;
 
     savePageContent();
-    currentPage = pageName;
+    loadPageContent(pageName);
     
-    let content = pageContent[pageName];
-    if (!content) {
-      content = getDefaultContent(pageName);
-      pageContent[pageName] = content;
-    }
-    
-    canvas.innerHTML = content;
-    postLoad();
-    adjustCanvasSize();
-    updateCardAccessibility();
-    
-    // Actualizar navegación
     navLinks.forEach(l => l.classList.remove('active'));
     const newActiveLink = qs(`[data-page="${pageName}"]`);
     if (newActiveLink) {
@@ -780,129 +636,214 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
   }
 
-  // Función para guardar el contenido de la página actual
-  function savePageContent() {
-    pageContent[currentPage] = canvas.innerHTML;
+  function loadPageContent(pageName) {
+      currentPage = pageName;
+      let content = pageContent[pageName];
+      if (!content) {
+          content = getDefaultContent(pageName);
+      }
+      canvas.innerHTML = content;
+      postLoad();
+      adjustCanvasSize();
+      updateCardAccessibility();
   }
 
-  // Función para actualizar la accesibilidad de las tarjetas según el rol
+  function savePageContent() {
+      pageContent[currentPage] = canvas.innerHTML;
+      localStorage.setItem('savedPageContent', JSON.stringify(pageContent));
+  }
+
+  function getDefaultContent(page) {
+      const pageData = {
+          home: {
+              title: "Sistema de Gestión de Residuos Sólidos",
+              subtitle: "La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.",
+              cards: [
+                  { title: "Gestión de Metas", desc: "Establece y sigue tus objetivos de sostenibilidad de manera intuitiva.", icon: "fa-bullseye", color: "#38a169", class: "metas", page: "metas", disabled: true },
+                  { title: "Dashboard de Indicadores", desc: "Visualiza en tiempo real el rendimiento del sistema de gestión.", icon: "fa-chart-line", color: "#4299e1", class: "indicadores", page: "indicadores", disabled: false },
+                  { title: "Seguimiento de Avances", desc: "Revisa el progreso de tus proyectos de reciclaje y reducción de residuos.", icon: "fa-chart-area", color: "#ecc94b", class: "avances", page: "avances", disabled: true },
+                  { title: "Generación de Reportes", desc: "Crea y exporta informes detallados para auditorías o análisis.", icon: "fa-file-lines", color: "#e53e3e", class: "reportes", page: "reportes", disabled: true },
+                  { title: "Formularios de Datos", desc: "Ingresa y gestiona datos a través de formularios personalizados.", icon: "fa-file-alt", color: "#673ab7", class: "formularios", page: "formularios", disabled: false },
+              ]
+          },
+          indicadores: {
+              title: "Dashboard de Indicadores Clave",
+              subtitle: "Aquí podrás ver todos los indicadores de gestión de residuos en tiempo real. Utiliza las herramientas de edición para añadir gráficos y métricas.",
+              cards: [
+                  { title: "Métricas de Reciclaje", desc: "Cantidad de material reciclado por mes, tasa de recuperación, etc.", icon: "fa-recycle", color: "#38a169", class: "metas" },
+                  { title: "Indicadores Financieros", desc: "Costos de gestión, ingresos por ventas de material, etc.", icon: "fa-dollar-sign", color: "#4299e1", class: "indicadores" },
+                  { title: "Rendimiento Operacional", desc: "Eficiencia de rutas de recolección, tiempo de procesamiento, etc.", icon: "fa-road", color: "#ecc94b", class: "avances" },
+                  { title: "Impacto Ambiental", desc: "Reducción de emisiones de CO2, ahorro de agua, etc.", icon: "fa-tree", color: "#e53e3e", class: "reportes" },
+              ]
+          },
+          metas: {
+              title: "Gestión de Metas de Sostenibilidad",
+              subtitle: "Define, monitorea y ajusta tus metas ambientales. Un paso a la vez, hacia un futuro más sostenible.",
+              cards: [
+                  { title: "Metas de Reducción", desc: "Objetivos para reducir el volumen de residuos generados.", icon: "fa-minimize", color: "#38a169", class: "metas" },
+                  { title: "Metas de Reciclaje", desc: "Aumentar la tasa de reciclaje en un porcentaje específico.", icon: "fa-trash-arrow-up", color: "#4299e1", class: "indicadores" },
+                  { title: "Metas de Capacitación", desc: "Número de empleados o comunidades capacitadas en gestión de residuos.", icon: "fa-chalkboard-user", color: "#ecc94b", class: "avances" },
+                  { title: "Metas de Certificación", desc: "Lograr certificaciones de gestión ambiental.", icon: "fa-award", color: "#e53e3e", class: "reportes" },
+              ]
+          },
+          avances: {
+              title: "Progreso y Avances del Proyecto",
+              subtitle: "Visualiza el avance de tus iniciativas y proyectos. Celebra tus logros y ajusta lo que sea necesario para alcanzar el éxito.",
+              cards: [
+                  { title: "Progreso en Proyectos", desc: "Seguimiento del estado de proyectos específicos, como la implementación de un nuevo centro de acopio.", icon: "fa-tasks", color: "#38a169", class: "metas" },
+                  { title: "Hitos Alcanzados", desc: "Registro de logros importantes, como la firma de un nuevo acuerdo con un nuevo socio de reciclaje.", icon: "fa-star", color: "#4299e1", class: "indicadores" },
+                  { title: "Análisis de Desempeño", desc: "Evaluación del rendimiento a lo largo del tiempo para identificar tendencias y áreas de mejora.", icon: "fa-arrow-trend-up", color: "#ecc94b", class: "avances" },
+                  { title: "Información de Equipo", desc: "Colabora y coordina con tu equipo para asegurar que todos estén en la misma página.", icon: "fa-users", color: "#e53e3e", class: "reportes" },
+              ]
+          },
+          reportes: {
+              title: "Generación y Descarga de Reportes",
+              subtitle: "Crea informes personalizados para tus stakeholders o para auditorías internas. Todos los datos, a tu alcance.",
+              cards: [
+                  { title: "Reportes Mensuales", desc: "Genera informes automáticos con datos del último mes.", icon: "fa-calendar-alt", color: "#38a169", class: "metas" },
+                  { title: "Reportes Financieros", desc: "Accede a reportes detallados sobre ingresos y gastos.", icon: "fa-chart-pie", color: "#4299e1", class: "indicadores" },
+                  { title: "Reportes de Cumplimiento", desc: "Prepara informes para cumplir con regulaciones y normativas.", icon: "fa-balance-scale", color: "#ecc94b", class: "avances" },
+                  { title: "Reportes Personalizados", desc: "Crea tus propios informes desde cero con los datos que necesites.", icon: "fa-cog", color: "#e53e3e", class: "reportes" },
+              ]
+          },
+          formularios: {
+            title: "Gestión y Creación de Formularios",
+            subtitle: "Diseña, despliega y administra formularios para la recolección de datos en campo. Agiliza la entrada de información.",
+            cards: [
+              { title: "Formularios de Inspección", desc: "Crea formularios para inspecciones de calidad o seguridad en las rutas.", icon: "fa-clipboard-check", color: "#673ab7", class: "formularios" },
+              { title: "Reporte de Incidentes", desc: "Permite a los técnicos registrar incidentes o anomalías al instante.", icon: "fa-exclamation-triangle", color: "#d32f2f", class: "reportes" },
+              { title: "Encuestas de Satisfacción", desc: "Recopila feedback de comunidades o clientes de forma sencilla.", icon: "fa-smile", color: "#fbc02d", class: "avances" },
+              { title: "Registro de Recolección", desc: "Un formulario rápido para registrar el tipo y peso de los residuos recolectados.", icon: "fa-truck-loading", color: "#2e7d32", class: "metas" },
+            ]
+          }
+      };
+      
+      const data = pageData[page];
+      let cardHTML = '';
+      if (data && data.cards) {
+          data.cards.forEach(card => {
+              const isDisabled = card.disabled;
+              const cardClass = `card ${card.class} ${isDisabled ? 'disabled' : ''}`;
+              const dataAttr = isDisabled ? `data-disabled-message="Acceso denegado. Esta función no está disponible en este momento."` : '';
+
+              cardHTML += `
+              <div class="${cardClass}" data-page="${card.page || ''}" ${dataAttr}>
+                  <div class="card-icon" style="background:${card.color};"><i class="fa-solid ${card.icon}"></i></div>
+                  <div class="card-content">
+                      <div class="card-title editable-text">${card.title}</div>
+                      <div class="card-desc editable-text">${card.desc}</div>
+                  </div>
+              </div>`;
+          });
+      }
+
+      const heroHTML = data ? `
+          <div class="hero">
+              <h1 class="editable-text">${data.title}</h1>
+              <p class="editable-text">${data.subtitle}</p>
+          </div>` : '';
+
+      return `
+        ${heroHTML}
+        <div class="cards">
+            ${cardHTML}
+        </div>
+      `;
+  }
+
   function updateCardAccessibility() {
     const cards = qsa('.cards .card');
     cards.forEach(card => {
-      const isRestricted = card.dataset.page === 'metas' || card.dataset.page === 'avances' || card.dataset.page === 'reportes';
-      if (isRestricted) {
-        if (role === 'admin' || role === 'tecnico') {
-          card.classList.remove('disabled');
-          card.removeAttribute('data-disabled-message');
-        } else {
-          card.classList.add('disabled');
-          card.dataset.disabledMessage = "Acceso denegado. Esta función no está disponible en este momento.";
+        const isRestricted = card.dataset.page === 'metas' || card.dataset.page === 'avances' || card.dataset.page === 'reportes';
+        if (isRestricted) {
+            if (role === 'admin' || role === 'tecnico') {
+                card.classList.remove('disabled');
+                card.removeAttribute('data-disabled-message');
+            } else {
+                card.classList.add('disabled');
+                card.dataset.disabledMessage = "Acceso denegado. Esta función no está disponible en este momento.";
+            }
         }
-      }
     });
   }
 
-  // Función para manejar inicio de sesión exitoso
-  function handleLoginSuccess(username, userId) {
-    // Determinar el rol basado en el nombre de usuario
-    if (username.includes('admin')) {
-      role = 'admin';
-    } else if (username.includes('tecnico')) {
-      role = 'tecnico';
-    } else {
-      role = 'viewer';
-    }
-    
-    // Actualizar la UI según el rol
-    updateUIForRole();
-    
-    // Mostrar información del usuario
-    whoami.textContent = `Hola, ${username.split('@')[0]}`;
-    whoami.style.display = 'inline';
-    openAuth.style.display = 'none';
-    logoutBtn.style.display = 'inline';
-    
-    // Ocultar modal de autenticación
-    auth.style.display = 'none';
-    
-    // Guardar información de sesión
-    localStorage.setItem('userRole', role);
-    localStorage.setItem('username', username);
-  }
+  /* ======= LOGIN ======= */
+  closeAuthBtn.onclick = () => auth.style.display = 'none';
+  qs('#auth-close').onclick = () => auth.style.display='none';
+  openAuth.onclick = () => auth.style.display='flex';
 
-  // Función para manejar cierre de sesión
-  function handleLogout() {
-    role = 'viewer';
-    editMode = false;
-    
-    // Actualizar la UI
-    updateUIForRole();
-    
-    // Ocultar elementos de usuario
-    whoami.style.display = 'none';
-    openAuth.style.display = 'inline';
-    logoutBtn.style.display = 'none';
-    
-    // Limpiar almacenamiento local
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('username');
-  }
+  const loginInputs = qsa('#auth input, #auth select');
+  loginInputs.forEach(input => {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        qs('#btn-login').click();
+      }
+    });
+  });
+  
+  const navRestricted = qsa('.nav .nav-link.disabled');
 
-  // Función para actualizar la UI según el rol
-  function updateUIForRole() {
-    if (role === 'admin' || role === 'tecnico') {
-      toggleEdit.style.display = 'inline';
-      // Habilitar enlaces deshabilitados
-      qsa('.nav-link.disabled').forEach(link => {
-        link.classList.remove('disabled');
-      });
-    } else {
-      toggleEdit.style.display = 'none';
-      editMode = false;
-      toggleEdit.classList.remove('active');
-      mainWrap.classList.remove('edit-active');
-      sidebar.classList.remove('active');
-      canvas.classList.remove('editing');
-      canvasToolbar.classList.remove('active');
+  qs('#btn-login').onclick = () => {
+    const u = qs('#login-user').value.trim();
+    const p = qs('#login-pass').value.trim();
+
+    if (p === '1234') {
+      let tempRole = 'viewer';
+      if (u === 'admin') tempRole = 'admin';
+      else if (u === 'tecnico') tempRole = 'tecnico';
       
-      // Deshabilitar enlaces según el rol
-      qsa('.nav-link:not([data-page="home"]):not([data-page="formularios"])').forEach(link => {
-        link.classList.add('disabled');
-      });
-    }
-    
-    updateCardAccessibility();
-  }
+      role = tempRole;
+      whoami.style.display = 'inline';
+      whoami.textContent = `Hola, ${u}`;
+      openAuth.style.display = 'none';
+      logoutBtn.style.display = 'inline-block';
+      auth.style.display = 'none';
 
-  // Función para guardar instantánea del historial
-  const saveSnapshot = (delay=300) => {
-    if(saveTimeout) clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(()=>{
-      pageContent[currentPage] = canvas.innerHTML;
-      history.push(pageContent[currentPage]);
-      if(history.length > 80) history.shift();
-      redo.length = 0;
-      saveTimeout = null;
-    }, delay);
+      if (role === 'admin' || role === 'tecnico') {
+        toggleEdit.style.display = 'inline-block';
+        navRestricted.forEach(a => a.classList.remove('disabled'));
+      } else {
+        toggleEdit.style.style = 'none';
+        navRestricted.forEach(a => a.classList.add('disabled'));
+      }
+      updateCardAccessibility();
+    } else {
+      alert('Contraseña incorrecta. Use "1234".');
+    }
   };
 
-  // Función para cargar después de cambios
-  const postLoad = () => {
-    qsa('.canvas-item').forEach(makeInteractive);
-    updateEditModeStyles();
+  function resetCanvasSelection(){
+    qsa('.selected').forEach(s=>s.classList.remove('selected'));
     selected = null;
     hideFloatbar();
-    adjustCanvasSize();
-  };
+    qs('#sec-general').classList.add('active');
+    qsa('#prop-tabs button').forEach(b => b.classList.remove('active'));
+    qs('[data-tab="general"]').classList.add('active');
+  }
 
-  // Función para actualizar estilos según el modo edición
+  logoutBtn.onclick = () => {
+    role = 'viewer';
+    whoami.style.display='none';
+    openAuth.style.display='inline-block';
+    logoutBtn.style.display='none';
+    toggleEdit.style.display='none';
+    editMode = false;
+    toggleEdit.classList.remove('active');
+    sidebar.classList.remove('active');
+    mainWrap.classList.remove('edit-active');
+    navRestricted.forEach(a=>a.classList.add('disabled'));
+    resetCanvasSelection();
+    updateEditModeStyles();
+    updateCardAccessibility();
+  };
+  
   function updateEditModeStyles() {
     sidebar.classList.toggle('active', editMode);
     mainWrap.classList.toggle('edit-active', editMode);
     canvas.classList.toggle('editing', editMode);
     canvasToolbar.classList.toggle('active', editMode);
     
-    // Hacer que todos los elementos existentes sean interactivos
+    // Make all existing home elements interactive
     qsa('.editable-text, .hero, .card').forEach(el => {
         el.onmousedown = (e) => {
             if (editMode) {
@@ -925,7 +866,7 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         };
     });
 
-    // Manejar nuevos elementos del canvas
+    // Handle new canvas items
     qsa('.canvas-item').forEach(item => {
       if (editMode) {
         makeInteractive(item);
@@ -938,7 +879,7 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
     });
 
-    // Manejar contenido editable para todos los elementos
+    // Handle contenteditable for all elements
     document.querySelectorAll('[contenteditable="true"]').forEach(el => {
       if (!editMode) {
           el.removeAttribute('contenteditable');
@@ -951,7 +892,98 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
   }
 
-  // Función para hacer elementos interactivos
+  /* ======= EDIT MODE ======= */
+  
+toggleEdit.onclick = () => {
+    if(role!=='admin' && role!=='tecnico') return;
+    editMode = !editMode;
+    toggleEdit.classList.toggle('active', editMode);
+    updateEditModeStyles();
+
+    // 🚀 Cuando se desactiva, guarda en Supabase
+    if (!editMode) {
+      savePageContent(); // localStorage
+      saveToSupabase(currentPage, canvas.innerHTML); // nube (Supabase)
+    }
+  };
+
+
+
+  /* ======= HISTORY (UNDO/REDO) ======= */
+  const history = [];
+  const redo = [];
+  let saveTimeout;
+  const saveSnapshot = (delay=300) => {
+    if(saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(()=>{
+      pageContent[currentPage] = canvas.innerHTML;
+      localStorage.setItem('savedPageContent', JSON.stringify(pageContent));
+      history.push(pageContent[currentPage]);
+      if(history.length > 80) history.shift();
+      redo.length = 0;
+      saveTimeout = null;
+    }, delay);
+  };
+  qs('#undo').onclick = () => {
+    if(!history.length) return;
+    redo.push(canvas.innerHTML);
+    canvas.innerHTML = history.pop();
+    pageContent[currentPage] = canvas.innerHTML;
+    localStorage.setItem('savedPageContent', JSON.stringify(pageContent));
+    postLoad();
+  };
+  qs('#redo').onclick = () => {
+    if(!redo.length) return;
+    history.push(canvas.innerHTML);
+    canvas.innerHTML = redo.pop();
+    pageContent[currentPage] = canvas.innerHTML;
+    localStorage.setItem('savedPageContent', JSON.stringify(pageContent));
+    postLoad();
+  };
+  const postLoad = () => {
+    qsa('.canvas-item').forEach(makeInteractive);
+    updateEditModeStyles();
+    selected = null;
+    hideFloatbar();
+    adjustCanvasSize();
+  };
+  window.addEventListener('beforeunload', savePageContent);
+
+  /* ======= INSERT ======= */
+  qsa('[data-insert]').forEach(btn=>{
+    btn.onclick=()=>{
+      if(!editMode) return;
+      const type = btn.dataset.insert;
+      const item = document.createElement('div');
+      item.className = 'canvas-item selectable';
+      item.style.left = '40px'; item.style.top = '40px';
+      item.style.width = '240px'; item.style.height = '60px';
+      item.dataset.type = type;
+
+      if(type==='h2'){ item.innerHTML = '<h2 class="canvas-h2 editable-text">Nuevo título</h2>'; }
+      if(type==='p'){ item.innerHTML = '<p class="canvas-p editable-text">Nuevo texto</p>'; item.style.height='80px'; }
+      if(type==='img'){ item.innerHTML = `<img src="https://i.imgur.com/kS9QJkP.png" alt="Imagen" class="canvas-img" draggable="false">`; item.style.height='160px'; }
+      if(type==='button'){ item.innerHTML = '<a href="#" class="canvas-button editable-text" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">Botón</a>'; item.style.height='48px'; }
+      if(type==='iframe'){ item.innerHTML = `<div class="video-wrapper" style="width:100%;height:100%;position:relative;">
+        <iframe src="" width="100%" height="100%" style="border:0;border-radius:10px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>`; item.style.width='360px'; item.style.height='200px'; }
+      if(type==='table'){ item.style.width='360px'; item.style.height='180px';
+        item.innerHTML = `<table class="canvas-table">
+          <tbody>
+            <tr><td contenteditable="true">A1</td><td contenteditable="true">B1</td></tr>
+            <tr><td contenteditable="true">A2</td><td contenteditable="true">B2</td></tr>
+          </tbody></table>`;
+      }
+
+      saveSnapshot();
+      canvas.appendChild(item);
+      makeInteractive(item);
+      selectItem(item);
+      adjustCanvasSize();
+    }
+  });
+
+  /* ======= INTERACTIVITY (move/resize/rotate) ======= */
   function makeInteractive(el){
     el.classList.add('selectable');
     
@@ -1061,9 +1093,9 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         saveSnapshot();
       }
     });
+
   }
 
-  // Función para obtener la posición y dimensiones de un elemento
   function getRect(el){
     if (el.classList.contains('canvas-item')) {
       const style = window.getComputedStyle(el);
@@ -1081,13 +1113,12 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
   }
 
-  // Función para obtener la rotación de un elemento
   function getRotation(el){
     const m = (el.style.transform||'').match(/rotate\(([-\d.]+)deg\)/);
     return m ? parseFloat(m[1]) : 0;
   }
 
-  // Función para seleccionar un elemento
+  /* ======= SELECCIÓN Y FLOATBAR ======= */
   function selectItem(el){
     if(!editMode) return;
     qsa('.selected').forEach(s=>s.classList.remove('selected'));
@@ -1096,15 +1127,13 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     updatePropInputs(el);
     highlightTabByType(el);
   }
-
-  // Función para mostrar la barra flotante
   function showFloatbar(el){
     const r = el.getBoundingClientRect();
     const canvasRect = canvas.getBoundingClientRect();
     const scrollX = canvas.scrollLeft;
     const scrollY = canvas.scrollTop;
     
-    // Calcular posición relativa al canvas
+    // Calculate position relative to the canvas
     const newLeft = (r.left - canvasRect.left + scrollX) + (r.width / 2);
     const newTop = r.top - canvasRect.top + scrollY - floatbar.offsetHeight - 8;
     
@@ -1119,101 +1148,14 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     qs('#fb-back').style.display = isCanvasItem ? 'flex' : 'none';
     qs('#fb-del').style.display = isHero ? 'none' : 'flex';
   }
-
-  // Función para ocultar la barra flotante
   function hideFloatbar(){ floatbar.style.display='none'; }
 
-  // Función para restablecer la selección del canvas
-  function resetCanvasSelection(){
-    qsa('.selected').forEach(s=>s.classList.remove('selected'));
-    selected = null;
-    hideFloatbar();
-    qs('#sec-general').classList.add('active');
-    qsa('#prop-tabs button').forEach(b => b.classList.remove('active'));
-    qs('[data-tab="general"]').classList.add('active');
-  }
-
-  // Función para ajustar el tamaño del canvas
-  function adjustCanvasSize() {
-    let maxBottom = 0;
-    const allElements = qsa('.selectable, .editable-text, .canvas-item, .hero, .card, .cards');
-    allElements.forEach(item => {
-        const rect = item.getBoundingClientRect();
-        const bottom = rect.top + rect.height;
-        if (bottom > maxBottom) {
-            maxBottom = bottom;
-        }
-    });
-    
-    // Convertir maxBottom a un valor relativo a la parte superior del canvas
-    const canvasTop = canvas.getBoundingClientRect().top;
-    const canvasMinHeight = maxBottom - canvasTop + 40; // Agregar algo de relleno en la parte inferior
-    
-    // Asegurar que el canvas tenga al menos la altura del viewport
-    const viewportHeight = window.innerHeight - qs('.topbar').offsetHeight - 36;
-    canvas.style.minHeight = Math.max(viewportHeight, canvasMinHeight) + 'px';
-  }
-
-  // Event Listeners
-  openAuth.addEventListener('click', () => auth.style.display = 'flex');
-  closeAuthBtn.addEventListener('click', () => auth.style.display = 'none');
-  qs('#auth-close').addEventListener('click', () => auth.style.display = 'none');
-  
-  // Botón de login
-  qs('#btn-login').addEventListener('click', async () => {
-    const user = qs('#login-user').value;
-    const pass = qs('#login-pass').value;
-    
-    // Autenticar con Supabase
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email: `${user}@example.com`, // Usar un dominio ficticio
-      password: pass
-    });
-    
-    if (error) {
-      alert('Error de autenticación: ' + error.message);
-    }
-    // El resto del manejo se hace en onAuthStateChange
-  });
-  
-  // Botón de logout
-  logoutBtn.addEventListener('click', async () => {
-    await supabaseClient.auth.signOut();
-  });
-  
-  // Toggle de modo edición
-  toggleEdit.addEventListener('click', async () => {
-    if (role !== 'admin' && role !== 'tecnico') return;
-    
-    editMode = !editMode;
-    toggleEdit.classList.toggle('active', editMode);
-    
-    if (!editMode) {
-      // Al desactivar el modo edición, guardar los cambios en Supabase
-      await saveContentToSupabase();
-    }
-    
-    updateEditModeStyles();
-  });
-  
-  // Navegación entre páginas
-  navLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (link.classList.contains('disabled')) return;
-      
-      const page = link.dataset.page;
-      loadPageContent(page);
-    });
-  });
-
-  // Botones de la barra flotante
   qs('#fb-dup').onclick = ()=>{ 
     if(!selected) return; 
     saveSnapshot(); 
     const clone = selected.cloneNode(true);
     
-    // Eliminar clase selected del elemento clonado
+    // Remove selected class from the cloned element
     clone.classList.remove('selected');
     
     if (selected.classList.contains('canvas-item')) {
@@ -1254,13 +1196,11 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     adjustCanvasSize(); 
   };
 
-  // Botones de la barra de herramientas del canvas
   qs('#duplicate').onclick = ()=> qs('#fb-dup').click();
   qs('#bring-front').onclick = ()=> qs('#fb-front').click();
   qs('#send-back').onclick = ()=> qs('#fb-back').click();
   qs('#remove').onclick = ()=> qs('#fb-del').click();
 
-  // Eventos del canvas
   canvas.addEventListener('mousedown', (e)=>{ if(!editMode) return; if(e.target===canvas){ resetCanvasSelection(); }});
   
   document.addEventListener('mousedown', (e) => {
@@ -1277,7 +1217,7 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
   });
   
-  // Evento para elementos de la página de inicio
+  // New event listener for home page elements
   canvas.addEventListener('click', (e) => {
     if (!editMode) {
       const card = e.target.closest('.card');
@@ -1290,7 +1230,7 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           }
           if (card.dataset.page) {
               e.preventDefault();
-              loadPageContent(card.dataset.page);
+              navigateToPage(card.dataset.page);
               return;
           }
       }
@@ -1305,42 +1245,9 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         resetCanvasSelection();
     }
   });
+  
 
-  // Botones de inserción
-  qsa('[data-insert]').forEach(btn=>{
-    btn.onclick=()=>{
-      if(!editMode) return;
-      const type = btn.dataset.insert;
-      const item = document.createElement('div');
-      item.className = 'canvas-item selectable';
-      item.style.left = '40px'; item.style.top = '40px';
-      item.style.width = '240px'; item.style.height = '60px';
-      item.dataset.type = type;
-
-      if(type==='h2'){ item.innerHTML = '<h2 class="canvas-h2 editable-text">Nuevo título</h2>'; }
-      if(type==='p'){ item.innerHTML = '<p class="canvas-p editable-text">Nuevo texto</p>'; item.style.height='80px'; }
-      if(type==='img'){ item.innerHTML = `<img src="https://i.imgur.com/kS9QJkP.png" alt="Imagen" class="canvas-img" draggable="false">`; item.style.height='160px'; }
-      if(type==='button'){ item.innerHTML = '<a href="#" class="canvas-button editable-text" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">Botón</a>'; item.style.height='48px'; }
-      if(type==='iframe'){ item.innerHTML = `<div class="video-wrapper" style="width:100%;height:100%;position:relative;">
-        <iframe src="" width="100%" height="100%" style="border:0;border-radius:10px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-      </div>`; item.style.width='360px'; item.style.height='200px'; }
-      if(type==='table'){ item.style.width='360px'; item.style.height='180px';
-        item.innerHTML = `<table class="canvas-table">
-          <tbody>
-            <tr><td contenteditable="true">A1</td><td contenteditable="true">B1</td></tr>
-            <tr><td contenteditable="true">A2</td><td contenteditable="true">B2</td></tr>
-          </tbody></table>`;
-      }
-
-      saveSnapshot();
-      canvas.appendChild(item);
-      makeInteractive(item);
-      selectItem(item);
-      adjustCanvasSize();
-    }
-  });
-
-  // Pestañas de propiedades
+  /* ======= PROPIEDADES DINÁMICAS (EN TIEMPO REAL) ======= */
   const tabBtns = qsa('#prop-tabs .tab');
   const sections = {
     general: qs('#sec-general'), texto: qs('#sec-texto'), imagen: qs('#sec-imagen'),
@@ -1348,9 +1255,473 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   };
   tabBtns.forEach(b=>{ b.onclick=()=>{ tabBtns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); Object.values(sections).forEach(s=>s.classList.remove('active')); sections[b.dataset.tab].classList.add('active'); }});
 
-  // Inicializar la aplicación
-  initApp();
+  qsa('#sec-general input, #sec-general select').forEach(input => input.addEventListener('input', updateGeneralProps));
+  qsa('#sec-texto input, #sec-texto select').forEach(input => input.addEventListener('input', updateTextProps));
+  qsa('#sec-imagen input, #sec-imagen select').forEach(input => input.addEventListener('input', updateImageProps));
+  qsa('#sec-video input, #sec-video select').forEach(input => input.addEventListener('input', updateVideoProps));
+  qsa('#sec-boton input, #sec-boton select').forEach(input => input.addEventListener('input', updateButtonProps));
+  qsa('#sec-tabla input, #sec-tabla select').forEach(input => input.addEventListener('input', updateTableProps));
+  qsa('#sec-lienzo input, #sec-lienzo select').forEach(input => input.addEventListener('input', updateCanvasProps));
+
+  txtContentArea.addEventListener('input', () => {
+    if (currentEditable) {
+      currentEditable.textContent = txtContentArea.value;
+      saveSnapshot();
+    }
+    txtContentArea.style.height = 'auto';
+    txtContentArea.style.height = txtContentArea.scrollHeight + 'px';
+  });
+
+  const videoUploadInput = qs('#video-upload');
+  qs('#upload-btn').onclick = () => { videoUploadInput.click(); };
+  videoUploadInput.onchange = (e) => { const file = e.target.files[0]; if (file) { const url = URL.createObjectURL(file); qs('#vid-src').value = url; if (selected) { updateVideoProps(); } }};
+
+  const imageUploadInput = qs('#image-upload');
+  imageUploadInput.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file && selected && selected.dataset.type === 'img') {
+      const img = selected.querySelector('img');
+      if (img) {
+        const url = URL.createObjectURL(file);
+        img.src = url;
+        const tempImg = new Image();
+        tempImg.onload = function() {
+          selected.style.width = this.naturalWidth + 'px';
+          selected.style.height = this.naturalHeight + 'px';
+          updatePropInputs(selected);
+          saveSnapshot();
+          URL.revokeObjectURL(tempImg.src);
+        };
+        tempImg.src = url;
+        qs('#img-src').value = url;
+      }
+    }
+  };
+
+  function updateGeneralProps(){
+    if(!selected) return;
+    saveSnapshot();
+    const x = parseInt(qs('#gen-x').value)||0;
+    const y = parseInt(qs('#gen-y').value)||0;
+    const w = Math.max(40, parseInt(qs('#gen-w').value)||100);
+    const h = Math.max(40, parseInt(qs('#gen-h').value)||100);
+    if (selected.classList.contains('canvas-item')) {
+      selected.style.left = (snap?Math.round(x/grid)*grid:x)+'px';
+      selected.style.top  = (snap?Math.round(y/grid)*grid:y)+'px';
+      selected.style.width = (snap?Math.round(w/grid)*grid:w)+'px';
+      selected.style.height = (snap?Math.round(h/grid)*grid:h)+'px';
+    } else {
+        selected.style.width = w + 'px';
+        selected.style.height = h + 'px';
+    }
+    
+    selected.style.backgroundColor = qs('#gen-bg').value;
+    selected.style.borderColor = qs('#gen-bc').value;
+    selected.style.borderWidth = (parseInt(qs('#gen-bw').value)||0)+'px';
+    selected.style.borderStyle = 'solid';
+    selected.style.borderRadius = (parseInt(qs('#gen-br').value)||0)+'px';
+    selected.style.padding = (parseInt(qs('#gen-pad').value)||0)+'px';
+    const sh = qs('#gen-shadow').value;
+    selected.style.boxShadow = sh==='sm'?'0 6px 10px rgba(0,0,0,.08)': sh==='md'?'0 10px 20px rgba(0,0,0,.12)': sh==='lg'?'0 18px 30px rgba(0,0,0,.18)':'none';
+    const rot = parseInt(qs('#gen-rot').value)||0;
+    selected.style.transform = `rotate(${rot}deg)`;
+    selected.style.zIndex = parseInt(qs('#gen-z').value)||1;
+    showFloatbar(selected);
+    adjustCanvasSize();
+  }
+
+  function updateTextProps(){
+    if(!currentEditable) return;
+    saveSnapshot();
+    currentEditable.style.fontFamily = qs('#txt-font').value;
+    currentEditable.style.fontSize = (parseInt(qs('#txt-size').value)||18)+'px';
+    currentEditable.style.color = qs('#txt-color').value;
+    currentEditable.style.textAlign = qs('#txt-align').value;
+    adjustCanvasSize();
+  }
+
+  function updateImageProps(){
+    if(!selected) return;
+    const img = selected.querySelector('img'); if(!img) return;
+    saveSnapshot();
+    const src=qs('#img-src').value.trim(); if(src) img.src=src;
+    img.alt = qs('#img-alt').value;
+    img.style.objectFit = qs('#img-fit').value;
+    const w = parseInt(qs('#img-w').value); const h=parseInt(qs('#img-h').value);
+    if(w) selected.style.width = (snap?Math.round(w/grid)*grid:w)+'px';
+    if(h) selected.style.height = (snap?Math.round(h/grid)*grid:h)+'px';
+    adjustCanvasSize();
+  }
+
+  function updateVideoProps(){
+    if(!selected) return;
+    const iframe = selected.querySelector('iframe'); if(!iframe) return;
+    saveSnapshot();
+    let src = qs('#vid-src').value.trim();
+    iframe.src = src || '';
+    const w = parseInt(qs('#vid-w').value); const h = parseInt(qs('#vid-h').value);
+    if(w) selected.style.width = (snap ? Math.round(w / grid) * grid : w) + 'px';
+    if(h) selected.style.height = (snap ? Math.round(h / grid) * grid : h) + 'px';
+    adjustCanvasSize();
+  }
+
+  function updateButtonProps(){
+    if(!selected) return;
+    const a = selected.querySelector('a'); if(!a) return;
+    saveSnapshot();
+    a.textContent = qs('#btn-text').value||'Botón';
+    a.href = qs('#btn-href').value||'#';
+    a.style.background = qs('#btn-bg').value;
+    a.style.color = qs('#btn-fg').value;
+    a.style.borderRadius = (parseInt(qs('#btn-radius').value)||12)+'px';
+    a.style.padding = (parseInt(qs('#btn-pad').value)||10)+'px';
+    adjustCanvasSize();
+  }
+
+  function updateTableProps(){
+    const t=getTable(); if(!t) return; saveSnapshot();
+    const bc = qs('#tbl-bc').value; const bw = parseInt(qs('#tbl-bw').value)||1;
+    const cell = qs('#tbl-cell').value; const pad = (parseInt(qs('#tbl-pad').value)||8)+'px';
+    t.querySelectorAll('td,th').forEach(td=>{ td.style.border = `${bw}px solid ${bc}`; td.style.background=cell; td.style.padding=pad;});
+    adjustCanvasSize();
+  }
+
+  function updateCanvasProps(){
+    grid = Math.max(4, parseInt(qs('#canvas-grid').value)||20);
+    snap = (qs('#canvas-snap').value==='on');
+    canvas.style.backgroundSize = grid+'px '+grid+'px';
+  }
+
+
+  function updatePropInputs(el){
+    if(!el) return;
+    const isCanvasItem = el.classList.contains('canvas-item');
+
+    if (isCanvasItem) {
+      const rect = getRect(el);
+      qs('#gen-x').value = rect.x; qs('#gen-y').value = rect.y;
+      qs('#gen-w').value = rect.w; qs('#gen-h').value = rect.h;
+      qs('#gen-rot').value = getRotation(el);
+      qs('#gen-z').value = parseInt(el.style.zIndex||'1');
+      qs('#gen-bg').value = toHex(window.getComputedStyle(el).backgroundColor);
+      qs('#gen-bc').value = toHex(window.getComputedStyle(el).borderColor);
+      qs('#gen-bw').value = parseInt(window.getComputedStyle(el).borderWidth) || 0;
+      qs('#gen-br').value = parseInt(window.getComputedStyle(el).borderRadius) || 0;
+      qs('#gen-pad').value = parseInt(window.getComputedStyle(el).padding) || 0;
+      const sh = qs('#gen-shadow').value;
+      selected.style.boxShadow = sh==='sm'?'0 6px 10px rgba(0,0,0,.08)': sh==='md'?'0 10px 20px rgba(0,0,0,.12)': sh==='lg'?'0 18px 30px rgba(0,0,0,.18)':'none';
+      qs('#gen-rot').disabled = false;
+      qs('#gen-z').disabled = false;
+      qs('#gen-bg').disabled = false;
+      qs('#gen-bc').disabled = false;
+      qs('#gen-bw').disabled = false;
+      qs('#gen-br').disabled = false;
+      qs('#gen-pad').disabled = false;
+      qs('#gen-shadow').disabled = false;
+    } else {
+      const r = el.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      qs('#gen-x').value = Math.round(r.left - canvasRect.left + canvas.scrollLeft);
+      qs('#gen-y').value = Math.round(r.top - canvasRect.top + canvas.scrollTop);
+      qs('#gen-w').value = Math.round(r.width);
+      qs('#gen-h').value = Math.round(r.height);
+      qs('#gen-rot').value = 0;
+      qs('#gen-z').value = 1;
+      
+      qsa('#sec-general input, #sec-general select').forEach(input => {
+          if (input.id !== 'gen-w' && input.id !== 'gen-h') {
+              input.disabled = true;
+          } else {
+              input.disabled = false;
+          }
+      });
+    }
+    
+    const t = currentEditable || el.querySelector('h1,h2,p,li,td,a,div') || el;
+    if(t && (t.tagName === 'P' || t.tagName === 'H1' || t.tagName === 'H2' || t.tagName === 'A' || t.classList.contains('card-title') || t.classList.contains('card-desc'))){
+      if(t.classList.contains('canvas-button') || t.classList.contains('hero-button')){
+          qs('#btn-text').value = t.textContent;
+      }
+      
+      txtContentArea.value = t.textContent || '';
+      txtContentArea.style.height = 'auto';
+      txtContentArea.style.height = txtContentArea.scrollHeight + 'px';
+      
+      qs('#txt-font').value = (window.getComputedStyle(t).fontFamily||'Inter').replace(/["']/g,'') || 'Inter';
+      qs('#txt-size').value = parseInt(window.getComputedStyle(t).fontSize)||18;
+      qs('#txt-color').value = toHex(window.getComputedStyle(t).color);
+      qs('#txt-align').value = window.getComputedStyle(t).textAlign || 'left';
+      
+      qsa('#sec-texto input, #sec-texto select').forEach(input => {input.disabled = false;});
+      qsa('#sec-texto button').forEach(btn => {btn.disabled = false;});
+
+    } else {
+        txtContentArea.value = '';
+        txtContentArea.style.height = '80px';
+        qs('#txt-font').value = 'Inter';
+        qs('#txt-size').value = 18;
+        qs('#txt-color').value = '#243b53';
+        qs('#txt-align').value = 'left';
+        
+        qsa('#sec-texto input, #sec-texto select').forEach(input => {input.disabled = true;});
+        qsa('#sec-texto button').forEach(btn => {btn.disabled = true;});
+    }
+
+    const im = el.querySelector('img');
+    if(im){
+      qs('#img-src').value = im.src||'';
+      qs('#img-alt').value = im.alt||'';
+      qs('#img-fit').value = im.style.objectFit||'cover';
+      qs('#img-w').value = parseInt(el.style.width)||im.width;
+      qs('#img-h').value = parseInt(el.style.height)||im.height;
+    }
+
+    const vf = el.querySelector('iframe');
+    if(vf){
+      qs('#vid-src').value = vf.src||'';
+      qs('#vid-w').value = parseInt(el.style.width)||vf.width||360;
+      qs('#vid-h').value = parseInt(el.style.height)||vf.height||200;
+    }
+
+    const ab = el.querySelector('a');
+    if(ab){
+      qs('#btn-text').value = ab.textContent||'Botón';
+      qs('#btn-href').value = ab.getAttribute('href')||'#';
+      qs('#btn-bg').value = toHex(window.getComputedStyle(ab).backgroundColor);
+      qs('#btn-fg').value = toHex(window.getComputedStyle(ab).color);
+      qs('#btn-radius').value = parseInt(window.getComputedStyle(ab).borderRadius)||12;
+      qs('#btn-pad').value = parseInt(window.getComputedStyle(ab).padding)||10;
+    }
+  }
+
+  // Textos
+  qs('#txt-bold').onmousedown = (e)=> { e.preventDefault(); execOnText('bold'); };
+  qs('#txt-italic').onmousedown = (e)=> { e.preventDefault(); execOnText('italic'); };
+  qs('#txt-underline').onmousedown = (e)=> { e.preventDefault(); execOnText('underline'); };
+
+  qs('#txt-list').onclick = () => {
+    if (!currentEditable) return;
+    saveSnapshot();
+    const ul = document.createElement('ul');
+    ul.style.margin = '0';
+    ul.style.paddingLeft = '18px';
+    ul.style.listStyle = 'disc';
+    ul.innerHTML = `<li>${currentEditable.innerHTML}</li>`;
+    currentEditable.replaceWith(ul);
+    ul.querySelectorAll('li').forEach(li => { li.setAttribute('contenteditable', 'true'); });
+    currentEditable = ul.querySelector('li');
+    updatePropInputs(selected);
+    adjustCanvasSize();
+  };
+
+  function execOnText(command){
+    if(currentEditable) {
+      document.execCommand(command, false, null);
+      currentEditable.focus();
+      saveSnapshot();
+    }
+  }
+
+  // Tabla
+  function getTable(){ return selected ? selected.querySelector('table') : null; }
+  qs('#tbl-add-row').onclick = ()=>{ const t=getTable(); if(!t) return; saveSnapshot(); const cols=t.rows[0]?.cells.length||2; const tr=t.insertRow(-1); for(let i=0;i<cols;i++){const td=tr.insertCell(-1); td.textContent=''; td.style.border='1px solid #cbd5e1'; td.style.padding='8px'; td.setAttribute('contenteditable','true');} adjustCanvasSize(); };
+  qs('#tbl-del-row').onclick = ()=>{ const t=getTable(); if(!t) return; if(t.rows.length>0){ saveSnapshot(); t.deleteRow(-1);} adjustCanvasSize(); };
+  qs('#tbl-add-col').onclick = ()=>{ const t=getTable(); if(!t) return; saveSnapshot(); Array.from(t.rows).forEach(r=>r.insertCell(-1).outerHTML=`<td></td>`); adjustCanvasSize(); };
+  qs('#tbl-del-col').onclick = ()=>{ const t=getTable(); if(!t) return; const len=t.rows[0]?.cells.length||0; if(len>0){ saveSnapshot(); Array.from(t.rows).forEach(r=>r.deleteCell(len-1)); } adjustCanvasSize(); };
+
+  function highlightTabByType(el){
+    const type = el.dataset.type || detectType(el);
+    const map = {h1: 'texto', h2:'texto', p:'texto', a:'boton', ul: 'texto', img:'imagen', iframe:'video', button:'boton', table:'tabla', div:'general'};
+    const tab = map[type] || 'general';
+    tabBtns.forEach(x=>x.classList.remove('active'));
+    Object.values(sections).forEach(s=>s.classList.remove('active'));
+    qs(`[data-tab="${tab}"]`).classList.add('active');
+    sections[tab].classList.add('active');
+  }
+  function detectType(el){
+    if(el.closest('.canvas-item[data-type="img"]')) return 'img';
+    if(el.closest('.canvas-item[data-type="iframe"]')) return 'iframe';
+    if(el.closest('.canvas-item[data-type="table"]')) return 'table';
+    if(el.closest('.canvas-item[data-type="button"]')) return 'button';
+    if(el.tagName === 'H1') return 'h1';
+    if(el.tagName === 'P') return 'p';
+    if(el.tagName === 'A' && el.classList.contains('hero-button')) return 'a';
+    if(el.classList.contains('card-title')) return 'h2';
+    if(el.classList.contains('card-desc')) return 'p';
+    if(el.tagName === 'TD') return 'td';
+    return 'div';
+  }
+
+  function toHex(rgbStr){
+    if(!rgbStr) return '#000000';
+    const m = rgbStr.match(/(\d+),\s*(\d+),\s*(\d+)/);
+    if(!m) return '#000000';
+    const r = (+m[1]).toString(16).padStart(2,'0');
+    const g = (+m[2]).toString(16).padStart(2,'0');
+    const b = (+m[3]).toString(16).padStart(2,'0');
+    return `#${r}${g}${b}`;
+  }
+
+  function adjustCanvasSize() {
+    let maxBottom = 0;
+    const allElements = qsa('.selectable, .editable-text, .canvas-item, .hero, .card, .cards');
+    allElements.forEach(item => {
+        const rect = item.getBoundingClientRect();
+        const bottom = rect.top + rect.height;
+        if (bottom > maxBottom) {
+            maxBottom = bottom;
+        }
+    });
+    
+    // Convert maxBottom to a value relative to the canvas's top
+    const canvasTop = canvas.getBoundingClientRect().top;
+    const canvasMinHeight = maxBottom - canvasTop + 40; // Add some padding at the bottom
+    
+    // Ensure the canvas is at least the viewport height
+    const viewportHeight = window.innerHeight - qs('.topbar').offsetHeight - 36;
+    canvas.style.minHeight = Math.max(viewportHeight, canvasMinHeight) + 'px';
+  }
+
+  // Load saved content from localStorage or default content
+  const savedContent = localStorage.getItem('savedPageContent');
+  if (savedContent) {
+      Object.assign(pageContent, JSON.parse(savedContent));
+  } else {
+      // Initialize with default content
+      pageContent.home = getDefaultContent('home');
+      pageContent.indicadores = getDefaultContent('indicadores');
+      pageContent.metas = getDefaultContent('metas');
+      pageContent.avances = getDefaultContent('avances');
+      pageContent.reportes = getDefaultContent('reportes');
+      pageContent.formularios = getDefaultContent('formularios');
+  }
+
+  // Carga la página de inicio por defecto
+  loadPageContent('home');
 })();
 </script>
-</body>
-</html>
+
+
+<!-- ================== SUPABASE INTEGRATION (MEJORADA) ================== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "REPLACE_WITH_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "REPLACE_WITH_SUPABASE_ANON_KEY";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentPage = window.currentPage || 'home';
+const canvasEl = document.getElementById('canvas');
+const toggleEditBtn = document.getElementById('toggle-edit');
+const openAuthBtn = document.getElementById('open-auth');
+const logoutBtn = document.getElementById('logout-btn');
+const whoami = document.getElementById('whoami');
+
+async function signInWithEmail(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
+}
+
+async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+}
+
+async function getUserRole(uid) {
+  if (!uid) return 'viewer';
+  const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', uid).maybeSingle();
+  if (error) return 'viewer';
+  return data?.role || 'viewer';
+}
+
+async function loadFromSupabase(pageName) {
+  const { data, error } = await supabase.from('paginas').select('contenido_html').eq('nombre', pageName).maybeSingle();
+  if (error) return null;
+  return data?.contenido_html;
+}
+
+async function saveToSupabase(pageName, htmlContent) {
+  const user = (await supabase.auth.getUser()).data.user;
+  const { error } = await supabase.from('paginas').upsert([{
+    nombre: pageName,
+    contenido_html: htmlContent,
+    actualizado: new Date().toISOString(),
+    actualizado_por: user?.id || null
+  }], { onConflict: ['nombre'] });
+  if (error) throw error;
+}
+
+let realtimeChannel = null;
+function subscribePageRealtime(pageName) {
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+  realtimeChannel = supabase.channel('paginas:' + pageName)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'paginas', filter: `nombre=eq.${pageName}` }, payload => {
+      if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+        const newHtml = payload.new?.contenido_html;
+        if (newHtml && newHtml !== canvasEl.innerHTML) {
+          canvasEl.innerHTML = newHtml;
+        }
+      }
+    }).subscribe();
+}
+
+const authModal = document.getElementById('auth');
+const loginUserInput = document.getElementById('login-user');
+const loginPassInput = document.getElementById('login-pass');
+const btnLogin = document.getElementById('btn-login');
+
+openAuthBtn.onclick = ()=>{authModal.style.display='flex'};
+btnLogin.onclick = async ()=>{
+  const userVal = loginUserInput.value.trim();
+  const passVal = loginPassInput.value.trim();
+  try{
+    let signResult;
+    if(userVal.includes('@')){
+      signResult = await signInWithEmail(userVal, passVal);
+    } else {
+      const fallbackEmail = userVal+'@example.com';
+      signResult = await signInWithEmail(fallbackEmail, passVal);
+    }
+    const user = signResult?.user ?? (await supabase.auth.getUser()).data.user;
+    const role = await getUserRole(user.id);
+    whoami.style.display='inline'; whoami.textContent=user.email;
+    openAuthBtn.style.display='none'; logoutBtn.style.display='inline-block';
+    toggleEditBtn.style.display=(role==='admin'||role==='tecnico')?'inline-block':'none';
+    authModal.style.display='none';
+    subscribePageRealtime(currentPage);
+  }catch(err){alert('Error login: '+err.message)}
+};
+
+logoutBtn.onclick = async ()=>{
+  await signOut();
+  whoami.style.display='none';
+  openAuthBtn.style.display='inline-block';
+  logoutBtn.style.display='none';
+  toggleEditBtn.style.display='none';
+};
+
+toggleEditBtn.onclick = async ()=>{
+  const editMode = canvasEl.isContentEditable;
+  canvasEl.contentEditable = !editMode;
+  if(editMode){
+    try{
+      await saveToSupabase(currentPage, canvasEl.innerHTML);
+      alert('Guardado en Supabase');
+    }catch(err){alert('Error guardando: '+err.message)}
+  }
+};
+
+(async function init(){
+  const html = await loadFromSupabase(currentPage);
+  if(html) canvasEl.innerHTML=html;
+  subscribePageRealtime(currentPage);
+  const { data: { user } } = await supabase.auth.getUser();
+  if(user){
+    const role = await getUserRole(user.id);
+    whoami.style.display='inline'; whoami.textContent=user.email;
+    openAuthBtn.style.display='none'; logoutBtn.style.display='inline-block';
+    toggleEditBtn.style.display=(role==='admin'||role==='tecnico')?'inline-block':'none';
+  }
+})();
+</script>
+<!-- ================== /SUPABASE INTEGRATION ================== -->
