@@ -20,6 +20,7 @@
       background-color: #f8f9fa;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       transition: margin-right 0.3s ease;
+      overflow-x: hidden;
     }
     
     body.editor-open {
@@ -34,6 +35,25 @@
     .main-content {
       padding: 20px;
       position: relative;
+      min-height: 100vh;
+      padding-bottom: 300px; /* Espacio adicional al fondo */
+    }
+    
+    .extra-space {
+      height: 500px;
+      background: linear-gradient(to bottom, rgba(248,249,250,1), rgba(248,249,250,0.5));
+      border-top: 2px dashed #ccc;
+      margin-top: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6c757d;
+      flex-direction: column;
+    }
+    
+    .extra-space i {
+      font-size: 2rem;
+      margin-bottom: 15px;
     }
     
     .card {
@@ -386,6 +406,23 @@
     .movable {
       position: absolute !important;
     }
+    
+    .scroll-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary-color);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 999;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
@@ -417,6 +454,11 @@
   <button class="btn btn-primary editor-toggle d-none" id="editor-toggle-btn">
     <i class="fas fa-edit"></i>
   </button>
+
+  <!-- Indicador de scroll -->
+  <div class="scroll-indicator d-none" id="scroll-indicator">
+    <i class="fas fa-arrow-down"></i>
+  </div>
 
   <!-- Panel de editor -->
   <div class="editor-panel" id="editor-panel">
@@ -818,6 +860,13 @@
           </div>
         </div>
       </div>
+
+      <!-- Espacio adicional para edición -->
+      <div class="extra-space" id="extra-space">
+        <i class="fas fa-arrows-alt-v"></i>
+        <p>Espacio adicional para colocar elementos</p>
+        <small>Puedes mover elementos aquí abajo usando el modo edición</small>
+      </div>
     </div>
   </div>
 
@@ -844,9 +893,7 @@
               <label for="password" class="form-label">Contraseña</label>
               <input type="password" class="form-control" id="password" required placeholder="Ingrese su contraseña">
             </div>
-            <button type="submit', () => {
-          // Código para manejar el envío del formulario
-        });" class="btn btn-primary w-100">Ingresar</button>
+            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
           </form>
           
           <div class="credentials-hint">
@@ -872,6 +919,7 @@
       const editorPanel = document.getElementById('editor-panel');
       const saveChangesBtn = document.getElementById('save-changes-btn');
       const cancelEditBtn = document.getElementById('cancel-edit-btn');
+      const scrollIndicator = document.getElementById('scroll-indicator');
       const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
       
       // Elementos del editor
@@ -913,6 +961,21 @@
         currentUser = savedUser;
         updateUIForLoggedInUser(currentUser);
       }
+      
+      // Mostrar indicador de scroll cuando hay contenido fuera de vista
+      window.addEventListener('scroll', function() {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+          scrollIndicator.classList.add('d-none');
+        } else {
+          scrollIndicator.classList.remove('d-none');
+        }
+      });
+      
+      // Scroll al área adicional cuando se hace clic en el indicador
+      scrollIndicator.addEventListener('click', function() {
+        const extraSpace = document.getElementById('extra-space');
+        extraSpace.scrollIntoView({ behavior: 'smooth' });
+      });
       
       // Abrir modal de login al hacer clic en el botón
       loginBtn.addEventListener('click', function() {
@@ -1074,7 +1137,7 @@
         } else if (imagePreviewContainer.classList.contains('d-none') === false) {
           selectedElement.innerHTML = `<img src="${imagePreview.src}" class="img-fluid" alt="Imagen">`;
         } else {
-          alert('Por favor, proporcione una URL o suba una imagen.');
+          alert('Por favor, proporcione una URL or suba una imagen.');
         }
       });
       
@@ -1524,9 +1587,12 @@
         let newX = e.clientX - containerRect.left - dragOffset.x;
         let newY = e.clientY - containerRect.top - dragOffset.y;
         
-        // Limitar a los bordes del contenedor
+        // Limitar a los bordes del contenedor (solo horizontalmente)
         newX = Math.max(0, Math.min(newX, containerRect.width - selectedElement.offsetWidth));
-        newY = Math.max(0, Math.min(newY, containerRect.height - selectedElement.offsetHeight));
+        
+        // Permitir movimiento vertical ilimitado hacia abajo
+        // pero limitar hacia arriba para no salir de la pantalla
+        newY = Math.max(0, newY);
         
         // Aplicar nueva posición
         selectedElement.style.left = newX + 'px';
@@ -1539,6 +1605,11 @@
         // Actualizar información de posición
         updatePositionInfo();
         updateCoordinateBadge(selectedElement);
+        
+        // Si el elemento se mueve hacia abajo, hacer scroll automáticamente
+        if (e.clientY > window.innerHeight - 100) {
+          window.scrollBy(0, 20);
+        }
       }
       
       // Detener reposicionamiento
