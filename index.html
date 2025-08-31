@@ -6,6 +6,7 @@
   <title>Plataforma de Seguimiento - Daule</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
     :root {
       --primary-color: #2e7d32;
@@ -36,7 +37,7 @@
       padding: 20px;
       position: relative;
       min-height: 100vh;
-      padding-bottom: 300px; /* Espacio adicional al fondo */
+      padding-bottom: 300px;
     }
     
     .extra-space {
@@ -239,6 +240,15 @@
       border-top: 1px solid #e9ecef;
     }
     
+    .history-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #e9ecef;
+      border-radius: 5px;
+    }
+    
     .content-preview {
       max-width: 100%;
       max-height: 150px;
@@ -423,6 +433,38 @@
       z-index: 999;
       box-shadow: 0 3px 10px rgba(0,0,0,0.2);
     }
+    
+    .autosave-indicator {
+      position: fixed;
+      bottom: 70px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      z-index: 999;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: none;
+    }
+    
+    .history-item {
+      padding: 8px 12px;
+      border-left: 3px solid #6c757d;
+      margin-bottom: 5px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .history-item.current {
+      border-left-color: var(--primary-color);
+      background: #e8f5e9;
+    }
+    
+    .history-item:hover {
+      background: #e9ecef;
+    }
   </style>
 </head>
 <body>
@@ -455,6 +497,11 @@
     <i class="fas fa-edit"></i>
   </button>
 
+  <!-- Indicador de autoguardado -->
+  <div class="autosave-indicator" id="autosave-indicator">
+    <i class="fas fa-save"></i> Guardado
+  </div>
+
   <!-- Indicador de scroll -->
   <div class="scroll-indicator d-none" id="scroll-indicator">
     <i class="fas fa-arrow-down"></i>
@@ -470,6 +517,17 @@
     </div>
     
     <div class="editor-body">
+      <!-- Controles de historial -->
+      <div class="history-controls">
+        <button class="btn btn-sm btn-outline-secondary" id="history-back-btn" disabled>
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="mx-2">Historial</span>
+        <button class="btn btn-sm btn-outline-secondary" id="history-forward-btn" disabled>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
       <div class="element-info" id="element-info">
         <div><strong>Elemento seleccionado:</strong> <span id="selected-element-type">Ninguno</span></div>
         <div><strong>Tipo:</strong> <span class="element-type" id="selected-element-tag">-</span></div>
@@ -493,8 +551,8 @@
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="layout-tab" data-bs-toggle="tab" data-bs-target="#layout" type="button" role="tab">
-            <i class="fas fa-layer-group"></i> Disposición
+          <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+            <i class="fas fa-history"></i> Historial
           </button>
         </li>
       </ul>
@@ -667,33 +725,12 @@
           </div>
         </div>
         
-        <!-- Pestaña de Disposición -->
-        <div class="tab-pane fade" id="layout" role="tabpanel">
+        <!-- Pestaña de Historial -->
+        <div class="tab-pane fade" id="history" role="tabpanel">
           <div class="editor-section">
-            <h6><i class="fas fa-plus-circle"></i>Añadir elemento</h6>
-            <select class="form-select form-select-sm mb-2" id="element-type">
-              <option value="div">Contenedor</option>
-              <option value="h1">Título H1</option>
-              <option value="h2">Título H2</option>
-              <option value="h3">Título H3</option>
-              <option value="p">Párrafo</option>
-              <option value="button">Botón</option>
-              <option value="span">Texto en línea</option>
-            </select>
-            <button class="btn btn-success btn-sm w-100" id="add-element-btn">
-              <i class="fas fa-plus me-1"></i> Añadir elemento
-            </button>
-          </div>
-          
-          <div class="editor-section">
-            <h6><i class="fas fa-object-group"></i>Gestionar elemento</h6>
-            <div class="editor-actions">
-              <button class="btn btn-danger btn-sm" id="remove-element-btn">
-                <i class="fas fa-trash me-1"></i> Eliminar
-              </button>
-              <button class="btn btn-warning btn-sm" id="duplicate-element-btn">
-                <i class="fas fa-copy me-1"></i> Duplicar
-              </button>
+            <h6><i class="fas fa-history"></i>Historial de Cambios</h6>
+            <div id="history-list">
+              <p class="text-center text-muted">Cargando historial...</p>
             </div>
           </div>
         </div>
@@ -908,6 +945,13 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // Configuración de Supabase (reemplaza con tus propias credenciales)
+    const SUPABASE_URL = "https://lhnluarfjyzheezfrexr.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
+    
+    // Inicializar Supabase
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
     document.addEventListener('DOMContentLoaded', function() {
       const loginBtn = document.getElementById('login-btn');
       const loginLink = document.getElementById('login-link');
@@ -920,6 +964,9 @@
       const saveChangesBtn = document.getElementById('save-changes-btn');
       const cancelEditBtn = document.getElementById('cancel-edit-btn');
       const scrollIndicator = document.getElementById('scroll-indicator');
+      const autosaveIndicator = document.getElementById('autosave-indicator');
+      const historyBackBtn = document.getElementById('history-back-btn');
+      const historyForwardBtn = document.getElementById('history-forward-btn');
       const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
       
       // Elementos del editor
@@ -940,6 +987,7 @@
       const stylePresetBtns = document.querySelectorAll('.style-preset-btn');
       const zIndexSlider = document.getElementById('z-index');
       const zIndexValue = document.getElementById('z-index-value');
+      const historyList = document.getElementById('history-list');
       
       // Credenciales válidas
       const validUsers = {
@@ -954,6 +1002,10 @@
       let selectedElement = null;
       let isDragging = false;
       let dragOffset = { x: 0, y: 0 };
+      let changeHistory = [];
+      let currentHistoryIndex = -1;
+      let autosaveTimer = null;
+      let isSaving = false;
       
       // Verificar si ya hay una sesión activa
       const savedUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -961,6 +1013,9 @@
         currentUser = savedUser;
         updateUIForLoggedInUser(currentUser);
       }
+      
+      // Cargar datos iniciales desde Supabase
+      loadPageData();
       
       // Mostrar indicador de scroll cuando hay contenido fuera de vista
       window.addEventListener('scroll', function() {
@@ -1055,12 +1110,28 @@
       // Manejar el botón de guardar cambios
       saveChangesBtn.addEventListener('click', function() {
         saveChanges();
-        disableEditMode();
       });
       
       // Manejar el botón de cancelar edición
       cancelEditBtn.addEventListener('click', function() {
         disableEditMode();
+      });
+      
+      // Manejar botones de historial
+      historyBackBtn.addEventListener('click', function() {
+        if (currentHistoryIndex > 0) {
+          currentHistoryIndex--;
+          loadHistoryState(currentHistoryIndex);
+          updateHistoryButtons();
+        }
+      });
+      
+      historyForwardBtn.addEventListener('click', function() {
+        if (currentHistoryIndex < changeHistory.length - 1) {
+          currentHistoryIndex++;
+          loadHistoryState(currentHistoryIndex);
+          updateHistoryButtons();
+        }
       });
       
       // Manejar la subida de imágenes
@@ -1086,6 +1157,7 @@
         const text = document.getElementById('editor-text').value;
         if (text) {
           selectedElement.innerHTML = text;
+          addToHistory('Modificar texto', { field: selectedElement.getAttribute('data-field'), content: text });
         }
       });
       
@@ -1118,6 +1190,7 @@
             // Añadir manejadores de eventos al nuevo elemento
             addElementHandlers(selectedElement);
           }
+          addToHistory('Aplicar URL', { field: selectedElement.getAttribute('data-field'), url: url });
           alert('URL aplicada correctamente');
         } else {
           alert('Por favor, introduzca una URL válida.');
@@ -1134,10 +1207,12 @@
         const imageUrl = document.getElementById('image-url').value;
         if (imageUrl) {
           selectedElement.innerHTML = `<img src="${imageUrl}" class="img-fluid" alt="Imagen">`;
+          addToHistory('Insertar imagen', { field: selectedElement.getAttribute('data-field'), url: imageUrl });
         } else if (imagePreviewContainer.classList.contains('d-none') === false) {
           selectedElement.innerHTML = `<img src="${imagePreview.src}" class="img-fluid" alt="Imagen">`;
+          addToHistory('Insertar imagen', { field: selectedElement.getAttribute('data-field'), type: 'upload' });
         } else {
-          alert('Por favor, proporcione una URL or suba una imagen.');
+          alert('Por favor, proporcione una URL o suba una imagen.');
         }
       });
       
@@ -1178,6 +1253,7 @@
               </div>
             `;
           }
+          addToHistory('Insertar video', { field: selectedElement.getAttribute('data-field'), url: videoUrl });
         } else {
           alert('Por favor, introduzca la URL de un video.');
         }
@@ -1199,6 +1275,11 @@
         if (fontSize) selectedElement.style.fontSize = fontSize;
         if (fontColor) selectedElement.style.color = fontColor;
         if (textAlign) selectedElement.style.textAlign = textAlign;
+        
+        addToHistory('Aplicar estilos', { 
+          field: selectedElement.getAttribute('data-field'), 
+          styles: { fontFamily, fontSize, fontColor, textAlign } 
+        });
       });
       
       // Aplicar fondo
@@ -1215,6 +1296,11 @@
           selectedElement.style.backgroundColor = bgColor;
           selectedElement.style.opacity = bgOpacity / 100;
         }
+        
+        addToHistory('Aplicar fondo', { 
+          field: selectedElement.getAttribute('data-field'), 
+          styles: { backgroundColor: bgColor, opacity: bgOpacity / 100 } 
+        });
       });
       
       // Aplicar posición
@@ -1242,6 +1328,11 @@
         
         // Actualizar información de posición
         updatePositionInfo();
+        
+        addToHistory('Aplicar posición', { 
+          field: selectedElement.getAttribute('data-field'), 
+          position: { left: posX + 'px', top: posY + 'px', width: width + 'px', height: height + 'px' } 
+        });
       });
       
       // Aplicar z-index
@@ -1253,6 +1344,11 @@
         
         const zIndex = zIndexSlider.value;
         selectedElement.style.zIndex = zIndex;
+        
+        addToHistory('Aplicar z-index', { 
+          field: selectedElement.getAttribute('data-field'), 
+          zIndex: zIndex 
+        });
       });
       
       // Actualizar valor del z-index cuando se mueve el slider
@@ -1290,6 +1386,11 @@
               selectedElement.classList.remove('bg-primary', 'bg-secondary');
               break;
           }
+          
+          addToHistory('Aplicar estilo predefinido', { 
+            field: selectedElement.getAttribute('data-field'), 
+            style: style 
+          });
         });
       });
       
@@ -1326,7 +1427,8 @@
           newElement.style.width = '200px';
         }
         
-        newElement.setAttribute('data-field', 'new-element-' + Date.now());
+        const fieldName = 'new-element-' + Date.now();
+        newElement.setAttribute('data-field', fieldName);
         newElement.setAttribute('draggable', 'true');
         
         // Insertar en el contenedor principal
@@ -1337,6 +1439,13 @@
         
         // Seleccionar el nuevo elemento
         selectElement(newElement);
+        
+        addToHistory('Añadir elemento', { 
+          field: fieldName, 
+          type: elementType, 
+          content: newElement.innerHTML,
+          position: { left: '100px', top: '100px' }
+        });
       });
       
       // Eliminar elemento
@@ -1347,9 +1456,24 @@
         }
         
         if (confirm('¿Está seguro de que desea eliminar este elemento?')) {
+          const field = selectedElement.getAttribute('data-field');
+          const content = selectedElement.innerHTML;
+          const position = {
+            left: selectedElement.style.left,
+            top: selectedElement.style.top,
+            width: selectedElement.style.width,
+            height: selectedElement.style.height
+          };
+          
           selectedElement.remove();
           selectedElement = null;
           updateElementInfo();
+          
+          addToHistory('Eliminar elemento', { 
+            field: field, 
+            content: content,
+            position: position
+          });
         }
       });
       
@@ -1361,7 +1485,8 @@
         }
         
         const clonedElement = selectedElement.cloneNode(true);
-        clonedElement.setAttribute('data-field', 'element-' + Date.now());
+        const fieldName = 'element-' + Date.now();
+        clonedElement.setAttribute('data-field', fieldName);
         
         // Ajustar ligeramente la posición del clon
         if (clonedElement.style.left) {
@@ -1381,6 +1506,15 @@
         
         // Seleccionar el elemento clonado
         selectElement(clonedElement);
+        
+        addToHistory('Duplicar elemento', { 
+          originalField: selectedElement.getAttribute('data-field'),
+          newField: fieldName,
+          position: { 
+            left: clonedElement.style.left, 
+            top: clonedElement.style.top 
+          }
+        });
       });
       
       // Función para actualizar la UI cuando un usuario inicia sesión
@@ -1620,6 +1754,15 @@
         
         document.removeEventListener('mousemove', doPositioning);
         document.removeEventListener('mouseup', stopPositioning);
+        
+        // Guardar en el historial
+        addToHistory('Mover elemento', { 
+          field: selectedElement.getAttribute('data-field'), 
+          position: { 
+            left: selectedElement.style.left, 
+            top: selectedElement.style.top 
+          } 
+        });
       }
       
       // Iniciar arrastre para reordenamiento
@@ -1708,14 +1851,53 @@
         }
       }
       
-      // Función para guardar cambios (aquí integrarías con Supabase)
-      function saveChanges() {
-        const changes = {};
+      // Función para añadir una acción al historial
+      function addToHistory(action, data) {
+        // Eliminar cualquier historial futuro si estamos en medio del historial
+        if (currentHistoryIndex < changeHistory.length - 1) {
+          changeHistory = changeHistory.slice(0, currentHistoryIndex + 1);
+        }
+        
+        const historyItem = {
+          action,
+          data,
+          timestamp: new Date(),
+          snapshot: getPageSnapshot()
+        };
+        
+        changeHistory.push(historyItem);
+        currentHistoryIndex = changeHistory.length - 1;
+        
+        // Actualizar botones de historial
+        updateHistoryButtons();
+        
+        // Guardar automáticamente después de 2 segundos de inactividad
+        clearTimeout(autosaveTimer);
+        autosaveTimer = setTimeout(saveChanges, 2000);
+      }
+      
+      // Función para actualizar los botones de historial
+      function updateHistoryButtons() {
+        historyBackBtn.disabled = currentHistoryIndex <= 0;
+        historyForwardBtn.disabled = currentHistoryIndex >= changeHistory.length - 1;
+      }
+      
+      // Función para cargar un estado del historial
+      function loadHistoryState(index) {
+        if (index < 0 || index >= changeHistory.length) return;
+        
+        const historyItem = changeHistory[index];
+        restorePageSnapshot(historyItem.snapshot);
+      }
+      
+      // Función para obtener una instantánea de la página
+      function getPageSnapshot() {
+        const snapshot = {};
         
         document.querySelectorAll('.editable').forEach(el => {
           const field = el.getAttribute('data-field');
-          changes[field] = {
-            content: el.innerHTML,
+          snapshot[field] = {
+            html: el.innerHTML,
             styles: el.getAttribute('style'),
             classes: el.className,
             position: el.style.position,
@@ -1727,10 +1909,139 @@
           };
         });
         
-        // Aquí iría el código para guardar en Supabase
-        console.log('Cambios a guardar:', changes);
-        alert('Cambios guardados correctamente (en una implementación real, se guardarían en Supabase)');
+        return snapshot;
       }
+      
+      // Función para restaurar una instantánea de la página
+      function restorePageSnapshot(snapshot) {
+        for (const field in snapshot) {
+          const el = document.querySelector(`[data-field="${field}"]`);
+          if (el && snapshot[field]) {
+            el.innerHTML = snapshot[field].html;
+            
+            // Restaurar estilos
+            if (snapshot[field].styles) {
+              el.setAttribute('style', snapshot[field].styles);
+            } else {
+              el.removeAttribute('style');
+            }
+            
+            // Restaurar clases
+            el.className = snapshot[field].classes || '';
+            
+            // Restaurar posición y dimensiones
+            if (snapshot[field].position) {
+              el.style.position = snapshot[field].position;
+              el.style.left = snapshot[field].left;
+              el.style.top = snapshot[field].top;
+              el.style.width = snapshot[field].width;
+              el.style.height = snapshot[field].height;
+              el.style.zIndex = snapshot[field].zIndex;
+            }
+          }
+        }
+      }
+      
+      // Función para cargar datos desde Supabase
+      async function loadPageData() {
+        try {
+          const { data, error } = await supabase
+            .from('page_content')
+            .select('*')
+            .eq('page', 'dashboard')
+            .order('created_at', { ascending: false })
+            .limit(1);
+            
+          if (error) throw error;
+          
+          if (data && data.length > 0) {
+            const content = data[0].content;
+            restorePageSnapshot(content);
+            console.log('Datos cargados desde Supabase');
+          }
+        } catch (error) {
+          console.error('Error cargando datos:', error);
+        }
+      }
+      
+      // Función para guardar cambios en Supabase
+      async function saveChanges() {
+        if (isSaving) return;
+        
+        isSaving = true;
+        const snapshot = getPageSnapshot();
+        
+        try {
+          const { data, error } = await supabase
+            .from('page_content')
+            .upsert({
+              page: 'dashboard',
+              content: snapshot,
+              updated_by: currentUser ? currentUser.email : 'guest',
+              updated_at: new Date().toISOString()
+            });
+            
+          if (error) throw error;
+          
+          // Mostrar indicador de guardado
+          autosaveIndicator.style.display = 'block';
+          setTimeout(() => {
+            autosaveIndicator.style.display = 'none';
+          }, 2000);
+          
+          console.log('Datos guardados en Supabase');
+        } catch (error) {
+          console.error('Error guardando datos:', error);
+          alert('Error al guardar los cambios. Por favor, intente nuevamente.');
+        } finally {
+          isSaving = false;
+        }
+      }
+      
+      // Cargar historial desde Supabase
+      async function loadHistory() {
+        try {
+          const { data, error } = await supabase
+            .from('page_history')
+            .select('*')
+            .eq('page', 'dashboard')
+            .order('created_at', { ascending: false })
+            .limit(50);
+            
+          if (error) throw error;
+          
+          if (data && data.length > 0) {
+            // Procesar historial para mostrarlo en la interfaz
+            historyList.innerHTML = '';
+            
+            data.forEach((item, index) => {
+              const historyItem = document.createElement('div');
+              historyItem.className = 'history-item';
+              if (index === 0) historyItem.classList.add('current');
+              
+              const date = new Date(item.created_at);
+              historyItem.innerHTML = `
+                <div><strong>${item.action}</strong></div>
+                <small>Por: ${item.updated_by} - ${date.toLocaleString()}</small>
+              `;
+              
+              historyItem.addEventListener('click', () => {
+                restorePageSnapshot(item.content);
+              });
+              
+              historyList.appendChild(historyItem);
+            });
+          } else {
+            historyList.innerHTML = '<p class="text-center text-muted">No hay historial disponible</p>';
+          }
+        } catch (error) {
+          console.error('Error cargando historial:', error);
+          historyList.innerHTML = '<p class="text-center text-muted">Error cargando historial</p>';
+        }
+      }
+      
+      // Cargar historial cuando se active la pestaña
+      document.getElementById('history-tab').addEventListener('click', loadHistory);
     });
   </script>
 </body>
