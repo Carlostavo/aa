@@ -1,153 +1,337 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Indicadores Daule</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body { font-family: 'Poppins', sans-serif; background: #f8f9fa; }
-    .navbar { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-    .editing { outline: 2px dashed #198754; background: #fffbe6; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:#f6f7fb; }
+    .navbar { box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+    .editing-outline { outline: 2px dashed #198754 !important; outline-offset: 2px; }
+    .fab { position: fixed; right: 16px; bottom: 16px; z-index: 10000; }
+    .toolbar { position: fixed; right: 16px; bottom: 80px; z-index: 10000; display: none; }
+    .toolbar .btn { margin-bottom: 8px; width: 180px; text-align: left; }
+    .hero-section { border-radius: 12px; }
+    /* minimiza selección molesta cuando se edita */
+    [contenteditable="true"]:focus { outline: none; }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
+  <!-- NAV -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <div class="container-fluid">
       <a class="navbar-brand fw-bold" href="#">Indicadores Daule</a>
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item" id="loginButtonContainer">
-          <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Acceder</a>
-        </li>
-        <li class="nav-item dropdown d-none" id="userProfileContainer">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <span id="userName"></span>
-          </a>
-          <ul class="dropdown-menu">
-            <li><span class="dropdown-item-text">Rol: <span id="userRoleDisplay"></span></span></li>
+      <div class="ms-auto d-flex align-items-center gap-3">
+        <div id="whoami" class="text-white small d-none">
+          <span id="userEmail"></span> · <span id="userRole"></span>
+        </div>
+        <button class="btn btn-light btn-sm" id="btnLogin" data-bs-toggle="modal" data-bs-target="#modalLogin">Acceder</button>
+        <div class="dropdown d-none" id="userMenu">
+          <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+            Cuenta
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" id="btnToggleEdit" href="#">Activar edición</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#" id="editModeBtn">Activar Edición</a></li>
-            <li><a class="dropdown-item" href="#" id="logoutButton">Cerrar sesión</a></li>
+            <li><a class="dropdown-item" id="btnLogout" href="#">Cerrar sesión</a></li>
           </ul>
-        </li>
-      </ul>
+        </div>
+      </div>
     </div>
   </nav>
 
-  <!-- Contenido dinámico -->
-  <div class="container mt-4">
-    <div id="contenido"></div>
+  <!-- CANVAS de la página (se carga desde Supabase) -->
+  <main class="container my-4">
+    <div id="pageCanvas"></div>
+  </main>
+
+  <!-- FAB + Toolbar de edición (solo admin) -->
+  <div class="toolbar card p-2 shadow" id="editToolbar">
+    <button class="btn btn-outline-success btn-sm" data-action="add:h1">+ Título</button>
+    <button class="btn btn-outline-success btn-sm" data-action="add:p">+ Párrafo</button>
+    <button class="btn btn-outline-success btn-sm" data-action="add:button">+ Botón</button>
+    <button class="btn btn-outline-success btn-sm" data-action="add:card">+ Card</button>
+    <button class="btn btn-outline-success btn-sm" data-action="add:row">+ Fila/Cols</button>
+    <button class="btn btn-outline-success btn-sm" data-action="add:img">+ Imagen (URL)</button>
+    <button class="btn btn-outline-danger btn-sm" data-action="delete">Eliminar seleccionado</button>
+    <button class="btn btn-outline-secondary btn-sm" data-action="duplicate">Duplicar seleccionado</button>
   </div>
+  <button class="btn btn-warning fab d-none" id="fabSave">Guardar cambios</button>
 
   <!-- Modal Login -->
-  <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+  <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        <form id="loginForm">
+        <form id="formLogin">
           <div class="modal-header">
             <h5 class="modal-title">Acceso de Usuario</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <div class="mb-3">
+            <div class="mb-2">
               <label class="form-label">Correo</label>
-              <input type="email" class="form-control" id="email" required>
+              <input type="email" class="form-control" id="email" required value="jefe@daule.gob.ec">
             </div>
-            <div class="mb-3">
+            <div class="mb-2">
               <label class="form-label">Contraseña</label>
-              <input type="password" class="form-control" id="password" required>
+              <input type="password" class="form-control" id="password" required value="claveSegura123">
             </div>
-            <div id="error-message" class="alert alert-danger d-none"></div>
+            <div id="loginError" class="alert alert-danger d-none"></div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-success">Entrar</button>
+            <button class="btn btn-success" type="submit">Entrar</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- libs -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
   <script>
+    // ===== Supabase Client (con configuración robusta) =====
     const SUPABASE_URL = "https://lhnluarfjyzheezfrexr.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const loginForm = document.getElementById("loginForm");
-    const errorMessage = document.getElementById("error-message");
-    const contenido = document.getElementById("contenido");
-    const loginButtonContainer = document.getElementById("loginButtonContainer");
-    const userProfileContainer = document.getElementById("userProfileContainer");
-    const userName = document.getElementById("userName");
-    const userRoleDisplay = document.getElementById("userRoleDisplay");
-    const editModeBtn = document.getElementById("editModeBtn");
-    const logoutButton = document.getElementById("logoutButton");
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false,   // <- evita problemas con hash #/ y el JSON.parse del listener
+        storage: window.localStorage
+      }
+    });
 
+    // ===== Elementos UI =====
+    const pageCanvas = document.getElementById('pageCanvas');
+    const whoami = document.getElementById('whoami');
+    const userEmail = document.getElementById('userEmail');
+    const userRole = document.getElementById('userRole');
+    const btnLogin = document.getElementById('btnLogin');
+    const userMenu = document.getElementById('userMenu');
+    const loginError = document.getElementById('loginError');
+    const formLogin = document.getElementById('formLogin');
+    const fabSave = document.getElementById('fabSave');
+    const editToolbar = document.getElementById('editToolbar');
+    const btnToggleEdit = document.getElementById('btnToggleEdit');
+    const btnLogout = document.getElementById('btnLogout');
+
+    const PAGE_SLUG = 'home';
+
+    let currentUser = null;
+    let role = 'viewer';
     let editMode = false;
-    let userRole = "viewer";
+    let selectedEl = null;
 
-    // Cargar contenido inicial
-    async function cargarContenido() {
-      const { data } = await supabase.from("pagina").select("*").eq("id", "00000000-0000-0000-0000-000000000001").single();
-      if (data) contenido.innerHTML = data.html_content;
+    // ===== Util: limpiar clases/atributos de edición y serializar =====
+    function serializeCleanHTML() {
+      const clone = pageCanvas.cloneNode(true);
+      // quita clases de edición/selección
+      clone.querySelectorAll('.editing-outline').forEach(el => el.classList.remove('editing-outline'));
+      // quita contenteditable
+      clone.removeAttribute('contenteditable');
+      clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+      return clone.innerHTML;
     }
-    cargarContenido();
 
-    // Manejo login
-    loginForm.addEventListener("submit", async (e) => {
+    function setSelected(el) {
+      if (!editMode) return;
+      if (selectedEl) selectedEl.classList.remove('editing-outline');
+      selectedEl = el;
+      if (selectedEl) selectedEl.classList.add('editing-outline');
+    }
+
+    // Click para seleccionar nodo mientras editas
+    pageCanvas.addEventListener('click', (e) => {
+      if (!editMode) return;
       e.preventDefault();
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: document.getElementById("email").value,
-        password: document.getElementById("password").value
-      });
-      if (error) {
-        errorMessage.textContent = error.message;
-        errorMessage.classList.remove("d-none");
-      } else {
-        const loginModal = bootstrap.Modal.getInstance(document.getElementById("loginModal"));
-        loginModal.hide();
+      e.stopPropagation();
+      setSelected(e.target.closest('#pageCanvas *'));
+    });
+
+    // ===== Toolbar acciones =====
+    editToolbar.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const host = selectedEl || pageCanvas;
+
+      const append = (html) => {
+        host.insertAdjacentHTML('beforeend', html);
+      };
+
+      switch (action) {
+        case 'add:h1':
+          append('<h1 contenteditable="true" class="mt-3">Nuevo Título</h1>');
+          break;
+        case 'add:p':
+          append('<p contenteditable="true">Nuevo párrafo. Haz clic para editar este texto.</p>');
+          break;
+        case 'add:button':
+          append('<a href="#" class="btn btn-success my-2" contenteditable="false">Acción</a>');
+          break;
+        case 'add:card':
+          append(`
+            <div class="card my-3">
+              <div class="card-body">
+                <h5 class="card-title" contenteditable="true">Título de la card</h5>
+                <p class="card-text" contenteditable="true">Contenido de ejemplo para la card.</p>
+                <a class="btn btn-outline-success" href="#" contenteditable="false">Ver más</a>
+              </div>
+            </div>
+          `);
+          break;
+        case 'add:row':
+          append(`
+            <div class="row g-3 my-2">
+              <div class="col-md-6"><div class="p-3 bg-white rounded shadow-sm" contenteditable="true">Columna 1</div></div>
+              <div class="col-md-6"><div class="p-3 bg-white rounded shadow-sm" contenteditable="true">Columna 2</div></div>
+            </div>
+          `);
+          break;
+        case 'add:img':
+          const url = prompt('URL de la imagen:');
+          if (url) append(`<img src="${url}" alt="Imagen" class="img-fluid my-2">`);
+          break;
+        case 'delete':
+          if (selectedEl && selectedEl !== pageCanvas) {
+            const parent = selectedEl.parentElement;
+            selectedEl.remove();
+            setSelected(parent);
+          }
+          break;
+        case 'duplicate':
+          if (selectedEl && selectedEl !== pageCanvas) {
+            selectedEl.insertAdjacentHTML('afterend', selectedEl.outerHTML);
+          }
+          break;
       }
     });
 
-    // Estado de sesión
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const { data: profile } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-        userRole = profile?.role || "viewer";
-        loginButtonContainer.classList.add("d-none");
-        userProfileContainer.classList.remove("d-none");
-        userName.textContent = session.user.email;
-        userRoleDisplay.textContent = userRole;
-        editModeBtn.style.display = (userRole === "admin") ? "block" : "none";
-      } else {
-        loginButtonContainer.classList.remove("d-none");
-        userProfileContainer.classList.add("d-none");
-      }
-    });
-
-    logoutButton.addEventListener("click", async () => { await supabase.auth.signOut(); });
-
-    // Modo edición
-    editModeBtn.addEventListener("click", async () => {
+    // ===== Toggle edición / Guardar =====
+    async function toggleEdit() {
       editMode = !editMode;
+
       if (editMode) {
-        contenido.contentEditable = true;
-        contenido.classList.add("editing");
-        editModeBtn.textContent = "Guardar cambios";
+        // Activar edición
+        pageCanvas.contentEditable = true;
+        editToolbar.style.display = 'block';
+        fabSave.classList.remove('d-none');
+        btnToggleEdit.textContent = 'Desactivar edición (guardar)';
       } else {
-        contenido.contentEditable = false;
-        contenido.classList.remove("editing");
-        editModeBtn.textContent = "Activar edición";
-        // Guardar cambios
-        await supabase.from("pagina").update({ html_content: contenido.innerHTML })
-          .eq("id", "00000000-0000-0000-0000-000000000001");
-        alert("✅ Cambios guardados");
+        // Guardar
+        pageCanvas.contentEditable = false;
+        editToolbar.style.display = 'none';
+        fabSave.classList.add('d-none');
+        if (selectedEl) selectedEl.classList.remove('editing-outline');
+
+        const html = serializeCleanHTML();
+        const { error } = await supabase
+          .from('pagina')
+          .upsert({ slug: PAGE_SLUG, html_content: html });
+
+        if (error) {
+          alert('❌ Error guardando: ' + error.message);
+        } else {
+          alert('✅ Cambios guardados');
+          // recargar desde DB para asegurar consistencia
+          await loadPage();
+        }
+        btnToggleEdit.textContent = 'Activar edición';
       }
+    }
+
+    btnToggleEdit.addEventListener('click', (e) => { e.preventDefault(); toggleEdit(); });
+    fabSave.addEventListener('click', toggleEdit);
+
+    // ===== Cargar contenido =====
+    async function loadPage() {
+      const { data, error } = await supabase.from('pagina').select('html_content').eq('slug', PAGE_SLUG).single();
+      if (!error && data) {
+        pageCanvas.innerHTML = data.html_content;
+      } else if (error) {
+        console.error(error);
+      }
+    }
+
+    // ===== Auth =====
+    async function refreshUI(session) {
+      currentUser = session?.user || null;
+
+      if (!currentUser) {
+        whoami.classList.add('d-none');
+        userMenu.classList.add('d-none');
+        btnLogin.classList.remove('d-none');
+        btnToggleEdit.parentElement.classList.add('d-none');
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles').select('role').eq('id', currentUser.id).single();
+
+      role = profile?.role || 'viewer';
+      userEmail.textContent = currentUser.email;
+      userRole.textContent = role;
+
+      whoami.classList.remove('d-none');
+      userMenu.classList.remove('d-none');
+      btnLogin.classList.add('d-none');
+
+      // solo admin puede ver/usar edición
+      btnToggleEdit.parentElement.classList.toggle('d-none', role !== 'admin');
+    }
+
+    // estado de sesión
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      await refreshUI(session);
+    });
+
+    // al cargar
+    (async () => {
+      // Limpieza preventiva si alguna extensión ensució localStorage
+      try {
+        Object.keys(localStorage)
+          .filter(k => k.startsWith('sb-') || k.startsWith('supabase'))
+          .forEach(k => {
+            const v = localStorage.getItem(k);
+            // Si no luce como JSON válido, lo limpiamos
+            try { JSON.parse(v); } catch { localStorage.removeItem(k); }
+          });
+      } catch {}
+      const { data: { session } } = await supabase.auth.getSession();
+      await refreshUI(session);
+      await loadPage();
+    })();
+
+    // Login
+    formLogin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginError.classList.add('d-none');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        loginError.textContent = 'Error: ' + error.message;
+        loginError.classList.remove('d-none');
+      } else {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalLogin'));
+        modal?.hide();
+      }
+    });
+
+    // Logout
+    btnLogout.addEventListener('click', async (e) => {
+      e.preventDefault();
+      // Si estabas editando, guarda primero
+      if (editMode) await toggleEdit();
+      await supabase.auth.signOut();
+      location.reload();
     });
   </script>
 </body>
