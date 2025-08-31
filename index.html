@@ -5,99 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataforma de Seguimiento - Daule</title>
 
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    body { 
-      font-family: 'Poppins', sans-serif; 
-      background-color: #f0f2f5; 
-    }
-
-    /* NAVBAR */
+    body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; }
     .navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .navbar-brand { font-weight: 700; display: flex; align-items: center; }
     .navbar-brand .fa-chart-bar { margin-right: 10px; color: #fff; }
     .nav-link { font-weight: 600; transition: color 0.3s; }
     .nav-link:hover { color: #d1e7dd !important; }
-
-    /* HERO */
     .hero-section {
       background: linear-gradient(90deg, #198754, #157347);
-      color: white; 
-      padding: 50px 0; 
-      margin-bottom: 20px;
-      text-align: center; 
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      color: white; padding: 40px 0; margin-bottom: 20px;
+      text-align: center; border-radius: 8px;
     }
-    .hero-section h2 { font-size: 2.5rem; font-weight: 700; }
-
-    /* CARDS */
-    .card {
-      border: none; 
-      border-radius: 12px; 
-      overflow: hidden;
-      transition: transform 0.3s, box-shadow 0.3s;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    }
-    .card:hover { 
-      transform: translateY(-10px); 
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
-    }
-    .card-body { padding: 2rem; text-align: center; }
-    .card-icon { font-size: 3rem; margin-bottom: 15px; }
-    .card-title { font-weight: 600; font-size: 1.25rem; }
-
-    /* MODAL */
-    .modal-content { border-radius: 15px; }
-
-    /* USER PROFILE */
-    .user-profile { display: flex; align-items: center; color: white; cursor: pointer; }
-    .user-avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      background-color: #fff; color: #198754;
-      display: flex; align-items: center; justify-content: center;
-      margin-right: 8px; font-weight: bold;
-    }
-    .dropdown-menu { left: -50px !important; }
+    .editable { border: 2px dashed transparent; padding: 5px; }
+    .editable.editing { border: 2px dashed #198754; background: #fffbe6; }
   </style>
 </head>
 <body>
 
-  <!-- NAVBAR -->
+  <!-- 🔹 Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">
-        <i class="fas fa-chart-bar"></i> Indicadores Daule
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
+      <a class="navbar-brand" href="#"><i class="fas fa-chart-bar"></i> Indicadores Daule</a>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link active" href="#"><i class="fas fa-home"></i> Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-bullseye"></i> Metas</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-chart-line"></i> Indicadores</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-signal"></i> Avances</a></li>
-          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-file-alt"></i> Reportes</a></li>
-          
-          <!-- Botón de login -->
           <li class="nav-item" id="loginButtonContainer">
             <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
               <i class="fas fa-user-circle"></i> Acceder
             </a>
           </li>
-
-          <!-- Perfil de usuario (visible al iniciar sesión) -->
           <li class="nav-item dropdown d-none" id="userProfileContainer">
             <a class="nav-link dropdown-toggle user-profile" href="#" role="button" data-bs-toggle="dropdown">
               <div class="user-avatar" id="userAvatar"></div>
@@ -106,6 +46,7 @@
             <ul class="dropdown-menu">
               <li><span class="dropdown-item-text">Rol: <span id="userRoleDisplay"></span></span></li>
               <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" id="editModeBtn">Activar Edición</a></li>
               <li><a class="dropdown-item" href="#" id="logoutButton">Cerrar sesión</a></li>
             </ul>
           </li>
@@ -114,89 +55,38 @@
     </div>
   </nav>
 
-  <!-- HERO -->
+  <!-- 🔹 Contenido -->
   <div class="container mt-4">
     <div class="hero-section">
-      <h2 class="display-5">Panel de Indicadores</h2>
-      <p class="lead">Bienvenido a la plataforma, seleccione una opción del menú para comenzar.</p>
-    </div>
-
-    <!-- TARJETAS -->
-    <div class="row g-4">
-      <div class="col-md-3">
-        <div class="card text-white bg-primary">
-          <div class="card-body">
-            <i class="fas fa-bullseye card-icon"></i>
-            <h5 class="card-title">Metas</h5>
-            <p class="card-text">Gestionar metas del proyecto.</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-3">
-        <div class="card text-white bg-info">
-          <div class="card-body">
-            <i class="fas fa-chart-line card-icon"></i>
-            <h5 class="card-title">Indicadores</h5>
-            <p class="card-text">Visualizar y editar indicadores.</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-3">
-        <div class="card text-white bg-warning">
-          <div class="card-body">
-            <i class="fas fa-signal card-icon"></i>
-            <h5 class="card-title">Avances</h5>
-            <p class="card-text">Registrar progreso por indicador.</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-3">
-        <div class="card text-white bg-success">
-          <div class="card-body">
-            <i class="fas fa-file-alt card-icon"></i>
-            <h5 class="card-title">Reportes</h5>
-            <p class="card-text">Generar reportes automáticos.</p>
-          </div>
-        </div>
-      </div>
+      <h2 class="display-5 editable" id="tituloPrincipal">Panel de Indicadores</h2>
+      <p class="lead editable" id="subtituloPrincipal">Bienvenido a la plataforma, seleccione una opción del menú para comenzar.</p>
     </div>
   </div>
 
-  <!-- MODAL LOGIN -->
+  <!-- 🔹 Modal Login -->
   <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        
         <div class="modal-header">
           <h5 class="modal-title">Acceso de Usuario</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-
         <div class="modal-body">
           <form id="loginForm">
             <div class="mb-3">
               <label class="form-label">Correo Electrónico</label>
               <input type="email" class="form-control" id="email" placeholder="ejemplo@correo.com" required>
             </div>
-            
             <div class="mb-3">
               <label class="form-label">Contraseña</label>
               <input type="password" class="form-control" id="password" placeholder="********" required>
             </div>
-            
             <div class="d-grid gap-2">
-              <button type="submit" id="loginSubmitBtn" class="btn btn-success">
-                Entrar
-              </button>
+              <button type="submit" id="loginSubmitBtn" class="btn btn-success">Entrar</button>
             </div>
-
             <div id="error-message" class="alert alert-danger mt-3 d-none"></div>
           </form>
         </div>
-
       </div>
     </div>
   </div>
@@ -204,16 +94,11 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
-    // ===========================
-    // 🔐 Configuración Supabase
-    // ===========================
     const SUPABASE_URL = "https://lhnluarfjyzheezfrexr.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";  // 👈 reemplaza con tu anon key real
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Referencias DOM
     const loginForm = document.getElementById("loginForm");
     const emailInput = document.getElementById("email");
     const passwordInput = document.getElementById("password");
@@ -224,92 +109,75 @@
     const userName = document.getElementById("userName");
     const userRoleDisplay = document.getElementById("userRoleDisplay");
     const logoutButton = document.getElementById("logoutButton");
-    const loginSubmitBtn = document.getElementById("loginSubmitBtn");
+    const editModeBtn = document.getElementById("editModeBtn");
 
-    // Mostrar / ocultar UI según login
+    let editMode = false;
+
     function toggleUI(isLoggedIn) {
       loginButtonContainer.classList.toggle("d-none", isLoggedIn);
       userProfileContainer.classList.toggle("d-none", !isLoggedIn);
     }
 
-    // Actualizar perfil de usuario
     async function updateUserProfile(user) {
-      if (!user) {
-        toggleUI(false);
-        return;
-      }
-      
-      try {
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        if (error || !profile) {
-          console.error("Error al obtener perfil:", error);
-          return;
-        }
-
-        toggleUI(true);
-        userAvatar.textContent = user.email.charAt(0).toUpperCase();
-        userName.textContent = user.email;
-        userRoleDisplay.textContent = 
-          profile.role === "admin" ? "Administrador" :
-          profile.role === "tecnico" ? "Técnico" :
-          profile.role === "viewer" ? "Visualizador" : "Usuario";
-
-        // Redirecciones según rol
-        if (profile.role === "admin") window.location.href = "admin-dashboard.html";
-        if (profile.role === "tecnico") window.location.href = "tecnico-dashboard.html";
-
-      } catch (error) {
-        console.error("Error en updateUserProfile:", error);
-      }
+      if (!user) { toggleUI(false); return; }
+      const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      toggleUI(true);
+      userAvatar.textContent = user.email.charAt(0).toUpperCase();
+      userName.textContent = user.email;
+      userRoleDisplay.textContent = profile?.role || "Usuario";
+      editModeBtn.style.display = (profile?.role === "admin") ? "block" : "none";
     }
 
-    // Escuchar cambios de autenticación
     supabase.auth.onAuthStateChange((event, session) => {
       updateUserProfile(session?.user || null);
     });
 
-    // Login
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      errorMessageDiv.classList.add("d-none");
-      loginSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Entrando...';
-      loginSubmitBtn.disabled = true;
-
-      try {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: emailInput.value,
-          password: passwordInput.value
-        });
-
-        if (error) throw error;
-
-        // Cerrar modal
-        const loginModal = bootstrap.Modal.getInstance(document.getElementById("loginModal"));
-        if (loginModal) loginModal.hide();
-
-      } catch (error) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: emailInput.value,
+        password: passwordInput.value
+      });
+      if (error) {
         errorMessageDiv.textContent = "⚠️ " + error.message;
         errorMessageDiv.classList.remove("d-none");
-      } finally {
-        loginSubmitBtn.innerHTML = 'Entrar';
-        loginSubmitBtn.disabled = false;
+      } else {
+        const loginModal = bootstrap.Modal.getInstance(document.getElementById("loginModal"));
+        if (loginModal) loginModal.hide();
       }
     });
 
-    // Logout
-    logoutButton.addEventListener("click", async (e) => {
+    logoutButton.addEventListener("click", async () => { await supabase.auth.signOut(); });
+
+    // 🔹 Modo edición
+    editModeBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      try {
-        await supabase.auth.signOut();
-      } catch (error) {
-        console.error("Error al cerrar sesión:", error);
+      editMode = !editMode;
+      document.querySelectorAll(".editable").forEach(el => {
+        el.contentEditable = editMode;
+        el.classList.toggle("editing", editMode);
+      });
+      editModeBtn.textContent = editMode ? "Guardar cambios" : "Activar Edición";
+
+      if (!editMode) {
+        // Guardar cambios en DB
+        await supabase.from("pagina").upsert({
+          id: 1,
+          titulo: document.getElementById("tituloPrincipal").innerText,
+          subtitulo: document.getElementById("subtituloPrincipal").innerText
+        });
+        alert("✅ Cambios guardados");
       }
     });
+
+    // 🔹 Cargar contenido inicial
+    (async () => {
+      const { data } = await supabase.from("pagina").select("*").eq("id", 1).single();
+      if (data) {
+        document.getElementById("tituloPrincipal").innerText = data.titulo;
+        document.getElementById("subtituloPrincipal").innerText = data.subtitulo;
+      }
+    })();
   </script>
 </body>
 </html>
