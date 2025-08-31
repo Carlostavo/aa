@@ -1,174 +1,325 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gestión de Residuos Sólidos — Editor Pro</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.3/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --primary: #2e7d32;
-      --secondary: #4caf50;
-      --bg: #f4f4f4;
-      --text: #333;
-    }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h1 {
-      margin: 0;
-    }
-    #user-info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    #login-form {
-      display: none;
-      padding: 2rem;
-      max-width: 400px;
-      margin: 2rem auto;
-      background: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      border-radius: 8px;
-    }
-    #login-form input {
-      width: 100%;
-      padding: 0.5rem;
-      margin: 0.5rem 0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    #login-form button {
-      background: var(--secondary);
-      color: white;
-      border: none;
-      padding: 0.75rem;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-    }
-    #editor-toolbar {
-      display: none;
-      background: white;
-      padding: 1rem;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    main {
-      padding: 1rem;
-    }
-    .btn {
-      background: var(--secondary);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .btn.danger {
-      background: crimson;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plataforma de Seguimiento - Daule</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; }
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .hero-section { background: linear-gradient(90deg,#198754,#157347); color:white; padding:30px; border-radius:8px; }
+        .card { border:none; border-radius:12px; }
+        .user-avatar { width:32px;height:32px;border-radius:50%;background:#fff;color:#198754;display:flex;align-items:center;justify-content:center;margin-right:8px;font-weight:bold; }
+        .dropdown-menu { right: 0; left: auto; }
+        .editing { outline: 3px dashed rgba(0,0,0,0.12); }
+        #saveStatus { font-size:0.9rem; display:inline-block; margin-left:10px; }
+    </style>
 </head>
+
 <body>
-  <header>
-    <h1>Gestión de Residuos Sólidos</h1>
-    <div id="user-info">
-      <span id="username"></span>
-      <button id="btn-edit" class="btn" style="display:none;">Modo edición</button>
-      <button id="btn-logout" class="btn danger" style="display:none;">Cerrar sesión</button>
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#"><i class="fas fa-chart-bar"></i> Indicadores Daule</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-center">
+        <li class="nav-item" id="loginButtonContainer">
+          <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-user-circle"></i> Acceder</a>
+        </li>
+
+        <li class="nav-item dropdown d-none" id="userProfileContainer">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span id="userName">Usuario</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li class="px-3 py-2">Rol: <strong id="userRoleDisplay"></strong></li>
+            <li><hr class="dropdown-divider"></li>
+            <li class="px-3 py-2 d-none" id="editToggleContainer">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="editToggle">
+                <label class="form-check-label" for="editToggle">Modo edición</label>
+                <span id="saveStatus"></span>
+              </div>
+            </li>
+            <li><a class="dropdown-item" href="#" id="logoutButton">Cerrar sesión</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
-  </header>
-
-  <div id="login-form">
-    <h2>Iniciar sesión</h2>
-    <input type="email" id="email" placeholder="Correo electrónico" />
-    <input type="password" id="password" placeholder="Contraseña" />
-    <button id="btn-login">Entrar</button>
   </div>
+</nav>
 
-  <div id="editor-toolbar">
-    <h3>Barra de herramientas del editor</h3>
-    <p>Aquí puedes agregar las herramientas de edición (texto, imágenes, videos, etc).</p>
+<!-- Contenido editable -->
+<div class="container mt-4">
+  <div id="editableContent">
+    <div class="hero-section mb-4">
+      <h2 class="display-5">Panel de Indicadores</h2>
+      <p class="lead">Bienvenido a la plataforma, seleccione una opción del menú para comenzar.</p>
+    </div>
+
+    <div class="row g-4" id="cardsContainer">
+      <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+          <div class="card-body">
+            <i class="fas fa-bullseye card-icon"></i>
+            <h5 class="card-title">Metas</h5>
+            <p class="card-text">Gestionar metas del proyecto.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+          <div class="card-body">
+            <i class="fas fa-chart-line card-icon"></i>
+            <h5 class="card-title">Indicadores</h5>
+            <p class="card-text">Visualizar y editar indicadores.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+          <div class="card-body">
+            <i class="fas fa-signal card-icon"></i>
+            <h5 class="card-title">Avances</h5>
+            <p class="card-text">Registrar progreso por indicador.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+          <div class="card-body">
+            <i class="fas fa-file-alt card-icon"></i>
+            <h5 class="card-title">Reportes</h5>
+            <p class="card-text">Generar reportes automáticos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <main>
-    <h2>Contenido público</h2>
-    <p>Este es el contenido visible para todos los usuarios. Solo los técnicos y administradores que inicien sesión podrán usar el modo edición.</p>
-  </main>
+<!-- Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Acceso de Usuario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="loginForm">
+          <div class="mb-3"><label class="form-label">Usuario (Correo)</label><input id="email" type="email" class="form-control" required></div>
+          <div class="mb-3"><label class="form-label">Contraseña</label><input id="password" type="password" class="form-control" required></div>
+          <div class="d-grid gap-2"><button class="btn btn-success" type="submit">Entrar</button></div>
+          <div id="error-message" class="alert alert-danger mt-3 d-none"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
-  <script>
-    const SUPABASE_URL = "https://lhnluarfjyzheezfrexr.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
+<!-- Librerías -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Supabase v2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<script>
+/* ---------- CONFIG: sustituye por tus valores (no los dejes en el repo) ---------- */
+const SUPABASE_URL = 'TU_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'TU_SUPABASE_ANON_KEY';
+/* --------------------------------------------------------------------------------- */
 
-    const loginForm = document.getElementById("login-form");
-    const btnLogin = document.getElementById("btn-login");
-    const btnLogout = document.getElementById("btn-logout");
-    const btnEdit = document.getElementById("btn-edit");
-    const usernameSpan = document.getElementById("username");
-    const editorToolbar = document.getElementById("editor-toolbar");
+/* Inicializar cliente Supabase */
+const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Iniciar sesión
-    btnLogin.addEventListener("click", async () => {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      if (error) {
-        alert("Error al iniciar sesión: " + error.message);
-      } else {
-        location.reload();
-      }
-    });
+/* Elementos DOM */
+const loginForm = document.getElementById('loginForm');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const errorMessageDiv = document.getElementById('error-message');
+const loginButtonContainer = document.getElementById('loginButtonContainer');
+const userProfileContainer = document.getElementById('userProfileContainer');
+const userAvatar = document.getElementById('userAvatar');
+const userName = document.getElementById('userName');
+const userRoleDisplay = document.getElementById('userRoleDisplay');
+const logoutButton = document.getElementById('logoutButton');
+const editToggleContainer = document.getElementById('editToggleContainer');
+const editToggle = document.getElementById('editToggle');
+const saveStatus = document.getElementById('saveStatus');
+const editableContent = document.getElementById('editableContent');
 
-    // Cerrar sesión
-    btnLogout.addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      location.reload();
-    });
+let currentProfile = null;
+const PAGE_SLUG = 'home'; // slug para la página principal
 
-    // Revisar sesión activa
-    async function checkSession() {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        const user = data.session.user;
-        usernameSpan.textContent = user.email;
-        btnEdit.style.display = "inline-block";
-        btnLogout.style.display = "inline-block";
-        loginForm.style.display = "none";
-      } else {
-        loginForm.style.display = "block";
-      }
+/* --- Manejo de sesión y estado de autenticación --- */
+async function checkAuthStatus() {
+  const { data } = await supabase.auth.getSession();
+  const session = data.session;
+  if (session?.user) {
+    await updateUserProfile(session.user);
+  } else {
+    // mostrar login si no hay sesión
+    loginButtonContainer.classList.remove('d-none');
+    userProfileContainer.classList.add('d-none');
+  }
+}
+
+/* Escuchar cambios de auth (login/logout desde otras pestañas) */
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session?.user) updateUserProfile(session.user);
+  else {
+    currentProfile = null;
+    loginButtonContainer.classList.remove('d-none');
+    userProfileContainer.classList.add('d-none');
+  }
+});
+
+/* Actualiza UI con el perfil (y añade modo edición si aplica) */
+async function updateUserProfile(user) {
+  try {
+    // obtener perfil
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id,email,role')
+      .eq('id', user.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error al obtener perfil:', error);
+      // mostrar aunque sea correo
+      userRoleDisplay.textContent = '(sin perfil)';
     }
 
-    // Mostrar/Ocultar editor
-    btnEdit.addEventListener("click", () => {
-      if (editorToolbar.style.display === "none") {
-        editorToolbar.style.display = "block";
-        btnEdit.textContent = "Ocultar edición";
-      } else {
-        editorToolbar.style.display = "none";
-        btnEdit.textContent = "Modo edición";
-      }
-    });
+    currentProfile = profile || null;
 
-    checkSession();
-  </script>
+    // UI
+    loginButtonContainer.classList.add('d-none');
+    userProfileContainer.classList.remove('d-none');
+
+    userAvatar.textContent = (user.email || 'U').charAt(0).toUpperCase();
+    userName.textContent = user.email;
+    userRoleDisplay.textContent = profile ? profile.role : 'Usuario';
+
+    // mostrar Toggle de edición si es admin o tecnico
+    if (profile && (profile.role === 'admin' || profile.role === 'tecnico')) {
+      editToggleContainer.classList.remove('d-none');
+    } else {
+      editToggleContainer.classList.add('d-none');
+    }
+  } catch (err) {
+    console.error('Error updateUserProfile:', err);
+  }
+}
+
+/* --- Login --- */
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errorMessageDiv.classList.add('d-none');
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    errorMessageDiv.textContent = 'Error de inicio de sesión: ' + error.message;
+    errorMessageDiv.classList.remove('d-none');
+  } else {
+    // cerrar modal
+    const modalEl = document.getElementById('loginModal');
+    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modal.hide();
+
+    // update UI
+    if (data.user) await updateUserProfile(data.user);
+  }
+});
+
+/* --- Logout --- */
+logoutButton.addEventListener('click', async () => {
+  const { error } = await supabase.auth.signOut();
+  if (!error) {
+    loginButtonContainer.classList.remove('d-none');
+    userProfileContainer.classList.add('d-none');
+    // desactivar edición si alguien la dejó activa
+    if (editToggle.checked) editToggle.checked = false;
+    setEditable(false);
+  } else {
+    console.error('Error al cerrar sesión:', error);
+  }
+});
+
+/* --- Funciones de edición y guardado --- */
+function setEditable(isEditable) {
+  if (isEditable) {
+    editableContent.contentEditable = 'true';
+    editableContent.classList.add('editing');
+    saveStatus.textContent = 'Modo edición activo (recuerda desactivar para guardar)';
+  } else {
+    editableContent.contentEditable = 'false';
+    editableContent.classList.remove('editing');
+    saveStatus.textContent = '';
+  }
+}
+
+/* Cuando el usuario desactiva el modo edición: guardar cambios */
+editToggle?.addEventListener('change', async (e) => {
+  const on = e.target.checked;
+  setEditable(on);
+
+  if (!on) {
+    // Guardar contenido en la tabla 'pages' (upsert)
+    try {
+      saveStatus.textContent = 'Guardando...';
+      const htmlContent = editableContent.innerHTML;
+
+      const { data, error } = await supabase
+        .from('pages')
+        .upsert({ slug: PAGE_SLUG, content: htmlContent, updated_at: new Date().toISOString() }, { onConflict: 'slug' });
+
+      if (error) {
+        console.error('Error guardando página:', error);
+        saveStatus.textContent = 'Error al guardar';
+        setTimeout(()=> saveStatus.textContent = '', 3000);
+      } else {
+        saveStatus.textContent = 'Cambios guardados';
+        setTimeout(()=> saveStatus.textContent = '', 3000);
+      }
+    } catch (err) {
+      console.error('Excepción guardando:', err);
+      saveStatus.textContent = 'Error al guardar';
+      setTimeout(()=> saveStatus.textContent = '', 3000);
+    }
+  }
+});
+
+/* --- Cargar contenido persistente de 'pages' --- */
+async function loadPageContent() {
+  try {
+    const { data, error } = await supabase
+      .from('pages')
+      .select('content')
+      .eq('slug', PAGE_SLUG)
+      .single();
+
+    if (!error && data && data.content) {
+      editableContent.innerHTML = data.content;
+    }
+  } catch (err) {
+    console.error('Error cargando contenido de página:', err);
+  }
+}
+
+/* Inicialización al cargar */
+document.addEventListener('DOMContentLoaded', async () => {
+  await checkAuthStatus();
+  await loadPageContent();
+});
+</script>
 </body>
 </html>
