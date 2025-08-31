@@ -3,181 +3,152 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma de Seguimiento - Daule</title>
+  <title>Indicadores Daule</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; }
-    .navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .navbar-brand { font-weight: 700; display: flex; align-items: center; }
-    .navbar-brand .fa-chart-bar { margin-right: 10px; color: #fff; }
-    .nav-link { font-weight: 600; transition: color 0.3s; }
-    .nav-link:hover { color: #d1e7dd !important; }
-    .hero-section {
-      background: linear-gradient(90deg, #198754, #157347);
-      color: white; padding: 40px 0; margin-bottom: 20px;
-      text-align: center; border-radius: 8px;
-    }
-    .editable { border: 2px dashed transparent; padding: 5px; }
-    .editable.editing { border: 2px dashed #198754; background: #fffbe6; }
+    body { font-family: 'Poppins', sans-serif; background: #f8f9fa; }
+    .navbar { box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .editing { outline: 2px dashed #198754; background: #fffbe6; }
   </style>
 </head>
 <body>
-
-  <!-- 🔹 Navbar -->
+  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#"><i class="fas fa-chart-bar"></i> Indicadores Daule</a>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item" id="loginButtonContainer">
-            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
-              <i class="fas fa-user-circle"></i> Acceder
-            </a>
-          </li>
-          <li class="nav-item dropdown d-none" id="userProfileContainer">
-            <a class="nav-link dropdown-toggle user-profile" href="#" role="button" data-bs-toggle="dropdown">
-              <div class="user-avatar" id="userAvatar"></div>
-              <span id="userName">Usuario</span>
-            </a>
-            <ul class="dropdown-menu">
-              <li><span class="dropdown-item-text">Rol: <span id="userRoleDisplay"></span></span></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="#" id="editModeBtn">Activar Edición</a></li>
-              <li><a class="dropdown-item" href="#" id="logoutButton">Cerrar sesión</a></li>
-            </ul>
-          </li>
-        </ul>
-      </div>
+      <a class="navbar-brand fw-bold" href="#">Indicadores Daule</a>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item" id="loginButtonContainer">
+          <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Acceder</a>
+        </li>
+        <li class="nav-item dropdown d-none" id="userProfileContainer">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <span id="userName"></span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><span class="dropdown-item-text">Rol: <span id="userRoleDisplay"></span></span></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" id="editModeBtn">Activar Edición</a></li>
+            <li><a class="dropdown-item" href="#" id="logoutButton">Cerrar sesión</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
   </nav>
 
-  <!-- 🔹 Contenido -->
+  <!-- Contenido dinámico -->
   <div class="container mt-4">
-    <div class="hero-section">
-      <h2 class="display-5 editable" id="tituloPrincipal">Panel de Indicadores</h2>
-      <p class="lead editable" id="subtituloPrincipal">Bienvenido a la plataforma, seleccione una opción del menú para comenzar.</p>
-    </div>
+    <div id="contenido"></div>
   </div>
 
-  <!-- 🔹 Modal Login -->
+  <!-- Modal Login -->
   <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Acceso de Usuario</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="loginForm">
+        <form id="loginForm">
+          <div class="modal-header">
+            <h5 class="modal-title">Acceso de Usuario</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">Correo Electrónico</label>
-              <input type="email" class="form-control" id="email" placeholder="ejemplo@correo.com" required>
+              <label class="form-label">Correo</label>
+              <input type="email" class="form-control" id="email" required>
             </div>
             <div class="mb-3">
               <label class="form-label">Contraseña</label>
-              <input type="password" class="form-control" id="password" placeholder="********" required>
+              <input type="password" class="form-control" id="password" required>
             </div>
-            <div class="d-grid gap-2">
-              <button type="submit" id="loginSubmitBtn" class="btn btn-success">Entrar</button>
-            </div>
-            <div id="error-message" class="alert alert-danger mt-3 d-none"></div>
-          </form>
-        </div>
+            <div id="error-message" class="alert alert-danger d-none"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Entrar</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://lhnluarfjyzheezfrexr.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";  // 👈 reemplaza con tu anon key real
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const loginForm = document.getElementById("loginForm");
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const errorMessageDiv = document.getElementById("error-message");
+    const errorMessage = document.getElementById("error-message");
+    const contenido = document.getElementById("contenido");
     const loginButtonContainer = document.getElementById("loginButtonContainer");
     const userProfileContainer = document.getElementById("userProfileContainer");
-    const userAvatar = document.getElementById("userAvatar");
     const userName = document.getElementById("userName");
     const userRoleDisplay = document.getElementById("userRoleDisplay");
-    const logoutButton = document.getElementById("logoutButton");
     const editModeBtn = document.getElementById("editModeBtn");
+    const logoutButton = document.getElementById("logoutButton");
 
     let editMode = false;
+    let userRole = "viewer";
 
-    function toggleUI(isLoggedIn) {
-      loginButtonContainer.classList.toggle("d-none", isLoggedIn);
-      userProfileContainer.classList.toggle("d-none", !isLoggedIn);
+    // Cargar contenido inicial
+    async function cargarContenido() {
+      const { data } = await supabase.from("pagina").select("*").eq("id", "00000000-0000-0000-0000-000000000001").single();
+      if (data) contenido.innerHTML = data.html_content;
     }
+    cargarContenido();
 
-    async function updateUserProfile(user) {
-      if (!user) { toggleUI(false); return; }
-      const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      toggleUI(true);
-      userAvatar.textContent = user.email.charAt(0).toUpperCase();
-      userName.textContent = user.email;
-      userRoleDisplay.textContent = profile?.role || "Usuario";
-      editModeBtn.style.display = (profile?.role === "admin") ? "block" : "none";
-    }
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      updateUserProfile(session?.user || null);
-    });
-
+    // Manejo login
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const { error } = await supabase.auth.signInWithPassword({
-        email: emailInput.value,
-        password: passwordInput.value
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value
       });
       if (error) {
-        errorMessageDiv.textContent = "⚠️ " + error.message;
-        errorMessageDiv.classList.remove("d-none");
+        errorMessage.textContent = error.message;
+        errorMessage.classList.remove("d-none");
       } else {
         const loginModal = bootstrap.Modal.getInstance(document.getElementById("loginModal"));
-        if (loginModal) loginModal.hide();
+        loginModal.hide();
+      }
+    });
+
+    // Estado de sesión
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const { data: profile } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+        userRole = profile?.role || "viewer";
+        loginButtonContainer.classList.add("d-none");
+        userProfileContainer.classList.remove("d-none");
+        userName.textContent = session.user.email;
+        userRoleDisplay.textContent = userRole;
+        editModeBtn.style.display = (userRole === "admin") ? "block" : "none";
+      } else {
+        loginButtonContainer.classList.remove("d-none");
+        userProfileContainer.classList.add("d-none");
       }
     });
 
     logoutButton.addEventListener("click", async () => { await supabase.auth.signOut(); });
 
-    // 🔹 Modo edición
-    editModeBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
+    // Modo edición
+    editModeBtn.addEventListener("click", async () => {
       editMode = !editMode;
-      document.querySelectorAll(".editable").forEach(el => {
-        el.contentEditable = editMode;
-        el.classList.toggle("editing", editMode);
-      });
-      editModeBtn.textContent = editMode ? "Guardar cambios" : "Activar Edición";
-
-      if (!editMode) {
-        // Guardar cambios en DB
-        await supabase.from("pagina").upsert({
-          id: 1,
-          titulo: document.getElementById("tituloPrincipal").innerText,
-          subtitulo: document.getElementById("subtituloPrincipal").innerText
-        });
+      if (editMode) {
+        contenido.contentEditable = true;
+        contenido.classList.add("editing");
+        editModeBtn.textContent = "Guardar cambios";
+      } else {
+        contenido.contentEditable = false;
+        contenido.classList.remove("editing");
+        editModeBtn.textContent = "Activar edición";
+        // Guardar cambios
+        await supabase.from("pagina").update({ html_content: contenido.innerHTML })
+          .eq("id", "00000000-0000-0000-0000-000000000001");
         alert("✅ Cambios guardados");
       }
     });
-
-    // 🔹 Cargar contenido inicial
-    (async () => {
-      const { data } = await supabase.from("pagina").select("*").eq("id", 1).single();
-      if (data) {
-        document.getElementById("tituloPrincipal").innerText = data.titulo;
-        document.getElementById("subtituloPrincipal").innerText = data.subtitulo;
-      }
-    })();
   </script>
 </body>
 </html>
