@@ -146,7 +146,9 @@
               <input type="password" class="form-control" id="password" placeholder="********" required>
             </div>
             <div class="d-grid gap-2">
-              <button type="submit" class="btn btn-success">Entrar</button>
+              <button type="submit" id="loginSubmitBtn" class="btn btn-success">
+                Entrar
+              </button>
             </div>
             <div id="error-message" class="alert alert-danger mt-3 d-none"></div>
           </form>
@@ -174,60 +176,91 @@
     const userName = document.getElementById("userName");
     const userRoleDisplay = document.getElementById("userRoleDisplay");
     const logoutButton = document.getElementById("logoutButton");
+    const loginSubmitBtn = document.getElementById("loginSubmitBtn");
 
-    // Verificar estado de sesión al cargar
-    document.addEventListener("DOMContentLoaded", async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) updateUserProfile(session.user);
+    // Función para mostrar/ocultar elementos de la interfaz
+    function toggleUI(isLoggedIn) {
+      loginButtonContainer.classList.toggle("d-none", isLoggedIn);
+      userProfileContainer.classList.toggle("d-none", !isLoggedIn);
+    }
+
+    // Función para actualizar la interfaz con datos del perfil
+    async function updateUserProfile(user) {
+      if (!user) {
+        toggleUI(false);
+        return;
+      }
+      
+      try {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (error || !profile) {
+          console.error("Error al obtener perfil:", error);
+          return;
+        }
+
+        toggleUI(true);
+        userAvatar.textContent = user.email.charAt(0).toUpperCase();
+        userName.textContent = user.email;
+        userRoleDisplay.textContent = 
+          profile.role === "admin" ? "Administrador" :
+          profile.role === "tecnico" ? "Técnico" :
+          profile.role === "viewer" ? "Visualizador" : "Usuario";
+
+        // Redirecciones por rol
+        if (profile.role === "admin") window.location.href = "admin-dashboard.html";
+        if (profile.role === "tecnico") window.location.href = "tecnico-dashboard.html";
+
+      } catch (error) {
+        console.error("Error en updateUserProfile:", error);
+      }
+    }
+
+    // Escuchar cambios de estado de autenticación
+    supabase.auth.onAuthStateChange((event, session) => {
+      updateUserProfile(session?.user || null);
     });
 
     // Login
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       errorMessageDiv.classList.add("d-none");
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailInput.value,
-        password: passwordInput.value
-      });
-      if (error) {
+      loginSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Entrando...';
+      loginSubmitBtn.disabled = true;
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: emailInput.value,
+          password: passwordInput.value
+        });
+
+        if (error) throw error;
+        
+        // Cierra el modal de login
+        const loginModal = bootstrap.Modal.getInstance(document.getElementById("loginModal"));
+        if (loginModal) loginModal.hide();
+
+      } catch (error) {
         errorMessageDiv.textContent = "⚠️ " + error.message;
         errorMessageDiv.classList.remove("d-none");
-        return;
+      } finally {
+        loginSubmitBtn.innerHTML = 'Entrar';
+        loginSubmitBtn.disabled = false;
       }
-      const user = data.user;
-      bootstrap.Modal.getInstance(document.getElementById("loginModal")).hide();
-      await updateUserProfile(user);
     });
 
-    // Actualizar interfaz con datos del perfil
-    async function updateUserProfile(user) {
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      if (error || !profile) {
-        console.error("No se pudo obtener perfil:", error);
-        return;
-      }
-      loginButtonContainer.classList.add("d-none");
-      userProfileContainer.classList.remove("d-none");
-      userAvatar.textContent = user.email.charAt(0).toUpperCase();
-      userName.textContent = user.email;
-      userRoleDisplay.textContent =
-        profile.role === "admin" ? "Administrador" :
-        profile.role === "tecnico" ? "Técnico" :
-        profile.role === "viewer" ? "Visualizador" : "Usuario";
-      // Redirecciones por rol
-      if (profile.role === "admin") window.location.href = "admin-dashboard.html";
-      if (profile.role === "tecnico") window.location.href = "tecnico-dashboard.html";
-    }
-
     // Logout
-    logoutButton.addEventListener("click", async () => {
-      await supabase.auth.signOut();
-      userProfileContainer.classList.add("d-none");
-      loginButtonContainer.classList.remove("d-none");
+    logoutButton.addEventListener("click", async (e) => {
+      e.preventDefault();
+      try {
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+      }
     });
   </script>
 </body>
