@@ -33,6 +33,7 @@
     
     .main-content {
       padding: 20px;
+      position: relative;
     }
     
     .card {
@@ -131,7 +132,7 @@
     .edit-mode .editable:hover {
       outline: 2px solid var(--primary-color);
       background-color: rgba(76, 175, 80, 0.05);
-      cursor: pointer;
+      cursor: move;
     }
     
     .edit-mode .editable.selected {
@@ -153,6 +154,24 @@
       align-items: center;
       justify-content: center;
       cursor: move;
+      z-index: 10;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-size: 12px;
+    }
+    
+    .position-handle {
+      position: absolute;
+      top: -12px;
+      left: -12px;
+      background: var(--secondary-color);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
       z-index: 10;
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       font-size: 12px;
@@ -237,13 +256,7 @@
     
     .dragging {
       opacity: 0.8;
-      transform: rotate(3deg);
       z-index: 10000 !important;
-    }
-    
-    .drag-over {
-      background-color: rgba(76, 175, 80, 0.1) !important;
-      outline: 2px dashed var(--primary-color) !important;
     }
     
     .editor-toggle {
@@ -340,6 +353,39 @@
       padding: 4px 8px;
       border-radius: 4px;
     }
+    
+    .position-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .position-input {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .position-input label {
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    
+    .coordinate-badge {
+      position: absolute;
+      bottom: -8px;
+      right: -8px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      z-index: 11;
+    }
+    
+    .movable {
+      position: absolute !important;
+    }
   </style>
 </head>
 <body>
@@ -385,6 +431,7 @@
       <div class="element-info" id="element-info">
         <div><strong>Elemento seleccionado:</strong> <span id="selected-element-type">Ninguno</span></div>
         <div><strong>Tipo:</strong> <span class="element-type" id="selected-element-tag">-</span></div>
+        <div><strong>Posición:</strong> <span id="position-display">X: 0, Y: 0</span></div>
       </div>
       
       <ul class="nav nav-tabs" id="editorTabs" role="tablist">
@@ -396,6 +443,11 @@
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="style-tab" data-bs-toggle="tab" data-bs-target="#style" type="button" role="tab">
             <i class="fas fa-paint-brush"></i> Estilo
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="position-tab" data-bs-toggle="tab" data-bs-target="#position" type="button" role="tab">
+            <i class="fas fa-arrows-alt"></i> Posición
           </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -529,6 +581,50 @@
           </div>
         </div>
         
+        <!-- Pestaña de Posición -->
+        <div class="tab-pane fade" id="position" role="tabpanel">
+          <div class="editor-section">
+            <h6><i class="fas fa-arrows-alt"></i>Posición Absoluta</h6>
+            <div class="position-controls">
+              <div class="position-input">
+                <label>Posición X (px)</label>
+                <input type="number" class="form-control form-control-sm" id="position-x" value="0">
+              </div>
+              <div class="position-input">
+                <label>Posición Y (px)</label>
+                <input type="number" class="form-control form-control-sm" id="position-y" value="0">
+              </div>
+            </div>
+            <div class="position-controls">
+              <div class="position-input">
+                <label>Ancho (px)</label>
+                <input type="number" class="form-control form-control-sm" id="element-width" placeholder="Auto">
+              </div>
+              <div class="position-input">
+                <label>Alto (px)</label>
+                <input type="number" class="form-control form-control-sm" id="element-height" placeholder="Auto">
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm w-100 mt-2" id="apply-position-btn">
+              <i class="fas fa-check me-1"></i> Aplicar posición
+            </button>
+            <div class="form-text mt-2">También puedes arrastrar el elemento directamente con el handle <i class="fas fa-arrows-alt"></i></div>
+          </div>
+          
+          <div class="editor-section">
+            <h6><i class="fas fa-bars"></i>Capas (Z-Index)</h6>
+            <input type="range" class="form-range" id="z-index" min="1" max="100" value="5">
+            <div class="d-flex justify-content-between">
+              <small>Atrás</small>
+              <small>Valor: <span id="z-index-value">5</span></small>
+              <small>Al frente</small>
+            </div>
+            <button class="btn btn-secondary btn-sm w-100 mt-2" id="apply-zindex-btn">
+              <i class="fas fa-layer-group me-1"></i> Aplicar capa
+            </button>
+          </div>
+        </div>
+        
         <!-- Pestaña de Disposición -->
         <div class="tab-pane fade" id="layout" role="tabpanel">
           <div class="editor-section">
@@ -557,12 +653,6 @@
                 <i class="fas fa-copy me-1"></i> Duplicar
               </button>
             </div>
-          </div>
-          
-          <div class="editor-section">
-            <h6><i class="fas fa-arrows-alt"></i>Posición</h6>
-            <div class="form-text mb-2">Arrastra el elemento usando el handle <i class="fas fa-arrows-alt"></i></div>
-            <div class="form-text">Suelta en la posición deseada</div>
           </div>
         </div>
       </div>
@@ -754,7 +844,9 @@
               <label for="password" class="form-label">Contraseña</label>
               <input type="password" class="form-control" id="password" required placeholder="Ingrese su contraseña">
             </div>
-            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+            <button type="submit', () => {
+          // Código para manejar el envío del formulario
+        });" class="btn btn-primary w-100">Ingresar</button>
           </form>
           
           <div class="credentials-hint">
@@ -789,6 +881,8 @@
       const insertVideoBtn = document.getElementById('insert-video-btn');
       const applyStyleBtn = document.getElementById('apply-style-btn');
       const applyBgBtn = document.getElementById('apply-bg-btn');
+      const applyPositionBtn = document.getElementById('apply-position-btn');
+      const applyZIndexBtn = document.getElementById('apply-zindex-btn');
       const addElementBtn = document.getElementById('add-element-btn');
       const removeElementBtn = document.getElementById('remove-element-btn');
       const duplicateElementBtn = document.getElementById('duplicate-element-btn');
@@ -796,6 +890,8 @@
       const imagePreview = document.getElementById('image-preview');
       const imagePreviewContainer = document.getElementById('image-preview-container');
       const stylePresetBtns = document.querySelectorAll('.style-preset-btn');
+      const zIndexSlider = document.getElementById('z-index');
+      const zIndexValue = document.getElementById('z-index-value');
       
       // Credenciales válidas
       const validUsers = {
@@ -808,7 +904,8 @@
       let editMode = false;
       let originalContents = {};
       let selectedElement = null;
-      let dragElement = null;
+      let isDragging = false;
+      let dragOffset = { x: 0, y: 0 };
       
       // Verificar si ya hay una sesión activa
       const savedUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -1057,6 +1154,49 @@
         }
       });
       
+      // Aplicar posición
+      applyPositionBtn.addEventListener('click', function() {
+        if (!selectedElement) {
+          alert('Por favor, seleccione un elemento primero.');
+          return;
+        }
+        
+        const posX = document.getElementById('position-x').value;
+        const posY = document.getElementById('position-y').value;
+        const width = document.getElementById('element-width').value;
+        const height = document.getElementById('element-height').value;
+        
+        // Hacer el elemento movible
+        selectedElement.classList.add('movable');
+        
+        // Aplicar posición
+        if (posX) selectedElement.style.left = posX + 'px';
+        if (posY) selectedElement.style.top = posY + 'px';
+        
+        // Aplicar dimensiones
+        if (width) selectedElement.style.width = width + 'px';
+        if (height) selectedElement.style.height = height + 'px';
+        
+        // Actualizar información de posición
+        updatePositionInfo();
+      });
+      
+      // Aplicar z-index
+      applyZIndexBtn.addEventListener('click', function() {
+        if (!selectedElement) {
+          alert('Por favor, seleccione un elemento primero.');
+          return;
+        }
+        
+        const zIndex = zIndexSlider.value;
+        selectedElement.style.zIndex = zIndex;
+      });
+      
+      // Actualizar valor del z-index cuando se mueve el slider
+      zIndexSlider.addEventListener('input', function() {
+        zIndexValue.textContent = this.value;
+      });
+      
       // Estilos predefinidos
       stylePresetBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -1097,17 +1237,30 @@
         
         // Configurar según el tipo de elemento
         if (elementType === 'button') {
-          newElement.className = 'btn btn-primary editable mb-3';
+          newElement.className = 'btn btn-primary editable mb-3 movable';
           newElement.innerHTML = 'Nuevo Botón';
+          newElement.style.position = 'absolute';
+          newElement.style.top = '100px';
+          newElement.style.left = '100px';
         } else if (elementType.startsWith('h')) {
-          newElement.className = 'editable mb-3';
+          newElement.className = 'editable mb-3 movable';
           newElement.innerHTML = 'Nuevo Título';
+          newElement.style.position = 'absolute';
+          newElement.style.top = '100px';
+          newElement.style.left = '100px';
         } else if (elementType === 'span') {
-          newElement.className = 'editable d-inline-block';
+          newElement.className = 'editable d-inline-block movable';
           newElement.innerHTML = 'Texto en línea';
+          newElement.style.position = 'absolute';
+          newElement.style.top = '100px';
+          newElement.style.left = '100px';
         } else {
-          newElement.className = 'editable mb-3 p-3 border rounded';
+          newElement.className = 'editable mb-3 p-3 border rounded movable';
           newElement.innerHTML = 'Nuevo elemento - haga clic para editar';
+          newElement.style.position = 'absolute';
+          newElement.style.top = '100px';
+          newElement.style.left = '100px';
+          newElement.style.width = '200px';
         }
         
         newElement.setAttribute('data-field', 'new-element-' + Date.now());
@@ -1146,6 +1299,16 @@
         
         const clonedElement = selectedElement.cloneNode(true);
         clonedElement.setAttribute('data-field', 'element-' + Date.now());
+        
+        // Ajustar ligeramente la posición del clon
+        if (clonedElement.style.left) {
+          const currentLeft = parseInt(clonedElement.style.left);
+          clonedElement.style.left = (currentLeft + 20) + 'px';
+        }
+        if (clonedElement.style.top) {
+          const currentTop = parseInt(clonedElement.style.top);
+          clonedElement.style.top = (currentTop + 20) + 'px';
+        }
         
         // Insertar después del elemento seleccionado
         selectedElement.parentNode.insertBefore(clonedElement, selectedElement.nextSibling);
@@ -1202,7 +1365,10 @@
             html: el.innerHTML,
             parent: el.parentNode,
             nextSibling: el.nextSibling,
-            styles: el.getAttribute('style')
+            styles: el.getAttribute('style'),
+            position: el.style.position,
+            left: el.style.left,
+            top: el.style.top
           };
         });
         
@@ -1243,23 +1409,35 @@
             } else {
               el.removeAttribute('style');
             }
+            
+            // Restaurar posición si existía
+            if (originalContents[field].position) {
+              el.style.position = originalContents[field].position;
+              el.style.left = originalContents[field].left;
+              el.style.top = originalContents[field].top;
+            }
           }
         }
         
         // Remover manejadores de eventos y asas de arrastre
         document.querySelectorAll('.editable').forEach(el => {
           el.removeEventListener('click', handleElementClick);
-          el.removeEventListener('dragstart', handleDragStart);
-          el.removeEventListener('dragover', handleDragOver);
-          el.removeEventListener('dragenter', handleDragEnter);
-          el.removeEventListener('dragleave', handleDragLeave);
-          el.removeEventListener('drop', handleDrop);
-          el.removeEventListener('dragend', handleDragEnd);
+          el.removeEventListener('mousedown', startDrag);
           
           // Eliminar asas de arrastre
           const handle = el.querySelector('.element-handle');
           if (handle) {
             handle.remove();
+          }
+          
+          const positionHandle = el.querySelector('.position-handle');
+          if (positionHandle) {
+            positionHandle.remove();
+          }
+          
+          const coordinateBadge = el.querySelector('.coordinate-badge');
+          if (coordinateBadge) {
+            coordinateBadge.remove();
           }
         });
         
@@ -1274,76 +1452,112 @@
           const handle = document.createElement('div');
           handle.className = 'element-handle';
           handle.innerHTML = '<i class="fas fa-arrows-alt"></i>';
-          handle.setAttribute('draggable', 'true');
+          handle.addEventListener('mousedown', startDrag);
           element.appendChild(handle);
+        }
+        
+        // Añadir asa de posición si no existe
+        if (!element.querySelector('.position-handle')) {
+          const positionHandle = document.createElement('div');
+          positionHandle.className = 'position-handle';
+          positionHandle.innerHTML = '<i class="fas fa-crosshairs"></i>';
+          positionHandle.addEventListener('mousedown', startPositioning);
+          element.appendChild(positionHandle);
+        }
+        
+        // Añadir badge de coordenadas si no existe
+        if (!element.querySelector('.coordinate-badge')) {
+          const coordinateBadge = document.createElement('div');
+          coordinateBadge.className = 'coordinate-badge';
+          coordinateBadge.innerHTML = '0, 0';
+          element.appendChild(coordinateBadge);
+          updateCoordinateBadge(element);
         }
         
         // Añadir event listeners
         element.addEventListener('click', handleElementClick);
-        element.addEventListener('dragstart', handleDragStart);
-        element.addEventListener('dragover', handleDragOver);
-        element.addEventListener('dragenter', handleDragEnter);
-        element.addEventListener('dragleave', handleDragLeave);
-        element.addEventListener('drop', handleDrop);
-        element.addEventListener('dragend', handleDragEnd);
       }
       
       // Manejador de clic en elemento
       function handleElementClick(e) {
-        if (e.target.classList.contains('element-handle')) return;
+        if (e.target.classList.contains('element-handle') || 
+            e.target.classList.contains('position-handle') ||
+            e.target.classList.contains('coordinate-badge')) return;
+            
         e.stopPropagation();
         selectElement(this);
       }
       
-      // Manejador de inicio de arrastre
-      function handleDragStart(e) {
-        dragElement = this;
-        this.classList.add('dragging');
-        e.dataTransfer.setData('text/plain', this.getAttribute('data-field'));
-      }
-      
-      // Manejador de arrastre sobre
-      function handleDragOver(e) {
+      // Iniciar arrastre para reposicionamiento
+      function startPositioning(e) {
         e.preventDefault();
-        return false;
-      }
-      
-      // Manejador de entrada de arrastre
-      function handleDragEnter(e) {
-        this.classList.add('drag-over');
-      }
-      
-      // Manejador de salida de arrastre
-      function handleDragLeave(e) {
-        this.classList.remove('drag-over');
-      }
-      
-      // Manejador de soltar
-      function handleDrop(e) {
         e.stopPropagation();
         
-        if (dragElement !== this) {
-          // Insertar antes o después según la posición del mouse
-          const rect = this.getBoundingClientRect();
-          const dropPos = e.clientY - rect.top;
-          
-          if (dropPos < rect.height / 2) {
-            this.parentNode.insertBefore(dragElement, this);
-          } else {
-            this.parentNode.insertBefore(dragElement, this.nextSibling);
-          }
+        if (!selectedElement) return;
+        
+        isDragging = true;
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = 'grabbing';
+        
+        // Calcular offset del mouse
+        const rect = selectedElement.getBoundingClientRect();
+        dragOffset.x = e.clientX - rect.left;
+        dragOffset.y = e.clientY - rect.top;
+        
+        // Asegurarse de que el elemento sea posicionable
+        selectedElement.classList.add('movable');
+        if (!selectedElement.style.position || selectedElement.style.position === 'static') {
+          selectedElement.style.position = 'absolute';
         }
         
-        this.classList.remove('drag-over');
-        return false;
+        // Añadir event listeners para el drag
+        document.addEventListener('mousemove', doPositioning);
+        document.addEventListener('mouseup', stopPositioning);
       }
       
-      // Manejador de fin de arrastre
-      function handleDragEnd(e) {
-        this.classList.remove('dragging');
-        document.querySelectorAll('.drag-over').forEach(el => {
-          el.classList.remove('drag-over');
-        });
+      // Reposicionar elemento durante el drag
+      function doPositioning(e) {
+        if (!isDragging || !selectedElement) return;
+        
+        // Calcular nueva posición
+        const containerRect = document.querySelector('.main-content').getBoundingClientRect();
+        let newX = e.clientX - containerRect.left - dragOffset.x;
+        let newY = e.clientY - containerRect.top - dragOffset.y;
+        
+        // Limitar a los bordes del contenedor
+        newX = Math.max(0, Math.min(newX, containerRect.width - selectedElement.offsetWidth));
+        newY = Math.max(0, Math.min(newY, containerRect.height - selectedElement.offsetHeight));
+        
+        // Aplicar nueva posición
+        selectedElement.style.left = newX + 'px';
+        selectedElement.style.top = newY + 'px';
+        
+        // Actualizar controles de posición
+        document.getElementById('position-x').value = Math.round(newX);
+        document.getElementById('position-y').value = Math.round(newY);
+        
+        // Actualizar información de posición
+        updatePositionInfo();
+        updateCoordinateBadge(selectedElement);
+      }
+      
+      // Detener reposicionamiento
+      function stopPositioning() {
+        isDragging = false;
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        
+        document.removeEventListener('mousemove', doPositioning);
+        document.removeEventListener('mouseup', stopPositioning);
+      }
+      
+      // Iniciar arrastre para reordenamiento
+      function startDrag(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Este handler es para el reordenamiento, no para el posicionamiento libre
+        // Mantenemos esta función por compatibilidad pero no hace nada en el modo de posicionamiento libre
       }
       
       // Función para seleccionar un elemento
@@ -1360,8 +1574,27 @@
         // Actualizar editor con el contenido del elemento
         document.getElementById('editor-text').value = element.innerHTML;
         
+        // Actualizar controles de posición
+        if (element.style.left) {
+          document.getElementById('position-x').value = parseInt(element.style.left);
+        }
+        if (element.style.top) {
+          document.getElementById('position-y').value = parseInt(element.style.top);
+        }
+        if (element.style.width && element.style.width !== 'auto') {
+          document.getElementById('element-width').value = parseInt(element.style.width);
+        }
+        if (element.style.height && element.style.height !== 'auto') {
+          document.getElementById('element-height').value = parseInt(element.style.height);
+        }
+        if (element.style.zIndex) {
+          zIndexSlider.value = element.style.zIndex;
+          zIndexValue.textContent = element.style.zIndex;
+        }
+        
         // Actualizar información del elemento
         updateElementInfo();
+        updatePositionInfo();
       }
       
       // Función para actualizar la información del elemento seleccionado
@@ -1381,6 +1614,29 @@
         }
       }
       
+      // Función para actualizar la información de posición
+      function updatePositionInfo() {
+        const positionDisplay = document.getElementById('position-display');
+        
+        if (selectedElement) {
+          const x = selectedElement.style.left ? parseInt(selectedElement.style.left) : 0;
+          const y = selectedElement.style.top ? parseInt(selectedElement.style.top) : 0;
+          positionDisplay.textContent = `X: ${x}px, Y: ${y}px`;
+        } else {
+          positionDisplay.textContent = 'X: 0, Y: 0';
+        }
+      }
+      
+      // Función para actualizar el badge de coordenadas
+      function updateCoordinateBadge(element) {
+        const badge = element.querySelector('.coordinate-badge');
+        if (badge) {
+          const x = element.style.left ? parseInt(element.style.left) : 0;
+          const y = element.style.top ? parseInt(element.style.top) : 0;
+          badge.textContent = `${x}, ${y}`;
+        }
+      }
+      
       // Función para guardar cambios (aquí integrarías con Supabase)
       function saveChanges() {
         const changes = {};
@@ -1390,7 +1646,13 @@
           changes[field] = {
             content: el.innerHTML,
             styles: el.getAttribute('style'),
-            classes: el.className
+            classes: el.className,
+            position: el.style.position,
+            left: el.style.left,
+            top: el.style.top,
+            width: el.style.width,
+            height: el.style.height,
+            zIndex: el.style.zIndex
           };
         });
         
