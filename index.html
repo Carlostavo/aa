@@ -1,337 +1,428 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Indicadores Daule</title>
-
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataforma de Seguimiento - Daule</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:#f6f7fb; }
-    .navbar { box-shadow: 0 1px 8px rgba(0,0,0,.06); }
-    .editing-outline { outline: 2px dashed #198754 !important; outline-offset: 2px; }
-    .fab { position: fixed; right: 16px; bottom: 16px; z-index: 10000; }
-    .toolbar { position: fixed; right: 16px; bottom: 80px; z-index: 10000; display: none; }
-    .toolbar .btn { margin-bottom: 8px; width: 180px; text-align: left; }
-    .hero-section { border-radius: 12px; }
-    /* minimiza selección molesta cuando se edita */
-    [contenteditable="true"]:focus { outline: none; }
+    :root {
+      --primary-color: #2e7d32;
+      --secondary-color: #1565c0;
+      --accent-color: #4caf50;
+      --light-color: #f5f9f5;
+      --dark-color: #1b5e20;
+    }
+    
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .navbar {
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--dark-color);
+      border-color: var(--dark-color);
+    }
+    
+    .table th {
+      background-color: var(--light-color);
+    }
+    
+    .progress {
+      height: 10px;
+      border-radius: 5px;
+    }
+    
+    .dashboard-card {
+      cursor: pointer;
+    }
+    
+    .section-title {
+      border-left: 4px solid var(--primary-color);
+      padding-left: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      background-color: white;
+    }
   </style>
 </head>
 <body>
-  <!-- NAV -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+  <!-- Barra de navegación -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top">
     <div class="container-fluid">
-      <a class="navbar-brand fw-bold" href="#">Indicadores Daule</a>
-      <div class="ms-auto d-flex align-items-center gap-3">
-        <div id="whoami" class="text-white small d-none">
-          <span id="userEmail"></span> · <span id="userRole"></span>
-        </div>
-        <button class="btn btn-light btn-sm" id="btnLogin" data-bs-toggle="modal" data-bs-target="#modalLogin">Acceder</button>
-        <div class="dropdown d-none" id="userMenu">
-          <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">
-            Cuenta
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" id="btnToggleEdit" href="#">Activar edición</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" id="btnLogout" href="#">Cerrar sesión</a></li>
-          </ul>
-        </div>
+      <a class="navbar-brand" href="#"><i class="fas fa-chart-line me-2"></i>Indicadores Daule</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link active" href="#" data-section="dashboard"><i class="fas fa-home me-1"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-section="metas"><i class="fas fa-bullseye me-1"></i> Metas</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-section="indicadores"><i class="fas fa-chart-bar me-1"></i> Indicadores</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-section="avances"><i class="fas fa-tasks me-1"></i> Avances</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-section="reportes"><i class="fas fa-file-pdf me-1"></i> Reportes</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-section="usuarios"><i class="fas fa-users me-1"></i> Usuarios</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" id="logout-btn"><i class="fas fa-sign-out-alt me-1"></i> Cerrar sesión</a></li>
+        </ul>
       </div>
     </div>
   </nav>
 
-  <!-- CANVAS de la página (se carga desde Supabase) -->
-  <main class="container my-4">
-    <div id="pageCanvas"></div>
-  </main>
+  <!-- Contenido principal -->
+  <div class="container mt-4">
+    <!-- Sección Dashboard -->
+    <div id="dashboard-section">
+      <h2 class="section-title">Panel de Indicadores</h2>
+      <p>Bienvenido, seleccione una opción del menú para gestionar metas, indicadores, avances o reportes.</p>
 
-  <!-- FAB + Toolbar de edición (solo admin) -->
-  <div class="toolbar card p-2 shadow" id="editToolbar">
-    <button class="btn btn-outline-success btn-sm" data-action="add:h1">+ Título</button>
-    <button class="btn btn-outline-success btn-sm" data-action="add:p">+ Párrafo</button>
-    <button class="btn btn-outline-success btn-sm" data-action="add:button">+ Botón</button>
-    <button class="btn btn-outline-success btn-sm" data-action="add:card">+ Card</button>
-    <button class="btn btn-outline-success btn-sm" data-action="add:row">+ Fila/Cols</button>
-    <button class="btn btn-outline-success btn-sm" data-action="add:img">+ Imagen (URL)</button>
-    <button class="btn btn-outline-danger btn-sm" data-action="delete">Eliminar seleccionado</button>
-    <button class="btn btn-outline-secondary btn-sm" data-action="duplicate">Duplicar seleccionado</button>
-  </div>
-  <button class="btn btn-warning fab d-none" id="fabSave">Guardar cambios</button>
+      <!-- Dashboard Cards -->
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card text-white bg-primary mb-3 dashboard-card" data-section="metas">
+            <div class="card-body text-center">
+              <i class="fas fa-bullseye fa-3x mb-2"></i>
+              <h5 class="card-title">Metas</h5>
+              <p class="card-text">Gestionar metas del proyecto.</p>
+              <span class="badge bg-light text-dark">5 activas</span>
+            </div>
+          </div>
+        </div>
 
-  <!-- Modal Login -->
-  <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form id="formLogin">
-          <div class="modal-header">
-            <h5 class="modal-title">Acceso de Usuario</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-2">
-              <label class="form-label">Correo</label>
-              <input type="email" class="form-control" id="email" required value="jefe@daule.gob.ec">
+        <div class="col-md-3">
+          <div class="card text-white bg-info mb-3 dashboard-card" data-section="indicadores">
+            <div class="card-body text-center">
+              <i class="fas fa-chart-bar fa-3x mb-2"></i>
+              <h5 class="card-title">Indicadores</h5>
+              <p class="card-text">Visualizar y editar indicadores.</p>
+              <span class="badge bg-light text-dark">12 registrados</span>
             </div>
-            <div class="mb-2">
-              <label class="form-label">Contraseña</label>
-              <input type="password" class="form-control" id="password" required value="claveSegura123">
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card text-white bg-warning mb-3 dashboard-card" data-section="avances">
+            <div class="card-body text-center">
+              <i class="fas fa-tasks fa-3x mb-2"></i>
+              <h5 class="card-title">Avances</h5>
+              <p class="card-text">Registrar progreso por indicador.</p>
+              <span class="badge bg-light text-dark">45 registros</span>
             </div>
-            <div id="loginError" class="alert alert-danger d-none"></div>
           </div>
-          <div class="modal-footer">
-            <button class="btn btn-success" type="submit">Entrar</button>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card text-white bg-success mb-3 dashboard-card" data-section="reportes">
+            <div class="card-body text-center">
+              <i class="fas fa-file-pdf fa-3x mb-2"></i>
+              <h5 class="card-title">Reportes</h5>
+              <p class="card-text">Generar reportes automáticos.</p>
+              <span class="badge bg-light text-dark">3 generados</span>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Resumen de avances -->
+      <div class="row mt-4">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">Avances Recientes</h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Indicador</th>
+                      <th>Meta</th>
+                      <th>Avance</th>
+                      <th>Fecha</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Residuos caracterizados</td>
+                      <td>1000 toneladas</td>
+                      <td>
+                        <div class="progress">
+                          <div class="progress-bar bg-success" style="width: 75%">75%</div>
+                        </div>
+                      </td>
+                      <td>15/08/2023</td>
+                    </tr>
+                    <tr>
+                      <td>Hogares encuestados</td>
+                      <td>500 hogares</td>
+                      <td>
+                        <div class="progress">
+                          <div class="progress-bar bg-info" style="width: 40%">40%</div>
+                        </div>
+                      </td>
+                      <td>14/08/2023</td>
+                    </tr>
+                    <tr>
+                      <td>Personal capacitado</td>
+                      <td>50 personas</td>
+                      <td>
+                        <div class="progress">
+                          <div class="progress-bar bg-warning" style="width: 90%">90%</div>
+                        </div>
+                      </td>
+                      <td>10/08/2023</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">Estado General</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="progressChart" width="100%" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Login (inicialmente oculta) -->
+    <div id="login-section" class="d-none">
+      <div class="login-container">
+        <h2 class="text-center mb-4">Iniciar Sesión</h2>
+        <form id="login-form">
+          <div class="mb-3">
+            <label for="email" class="form-label">Correo electrónico</label>
+            <input type="email" class="form-control" id="email" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <input type="password" class="form-control" id="password" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100">Ingresar</button>
         </form>
+        <div class="mt-3 text-center">
+          <p>¿No tienes cuenta? <a href="#" id="register-link">Registrarse</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Registro (inicialmente oculta) -->
+    <div id="register-section" class="d-none">
+      <div class="login-container">
+        <h2 class="text-center mb-4">Crear Cuenta</h2>
+        <form id="register-form">
+          <div class="mb-3">
+            <label for="reg-name" class="form-label">Nombre completo</label>
+            <input type="text" class="form-control" id="reg-name" required>
+          </div>
+          <div class="mb-3">
+            <label for="reg-email" class="form-label">Correo electrónico</label>
+            <input type="email" class="form-control" id="reg-email" required>
+          </div>
+          <div class="mb-3">
+            <label for="reg-password" class="form-label">Contraseña</label>
+            <input type="password" class="form-control" id="reg-password" required>
+          </div>
+          <div class="mb-3">
+            <label for="reg-role" class="form-label">Rol</label>
+            <select class="form-select" id="reg-role" required>
+              <option value="">Seleccionar rol</option>
+              <option value="visualizador">Visualizador</option>
+              <option value="tecnico">Técnico</option>
+              <option value="administrador">Administrador</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Registrarse</button>
+        </form>
+        <div class="mt-3 text-center">
+          <p>¿Ya tienes cuenta? <a href="#" id="login-link">Iniciar sesión</a></p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- libs -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // ===== Supabase Client (con configuración robusta) =====
-    const SUPABASE_URL = "https://lhnluarfjyzheezfrexr.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: false,   // <- evita problemas con hash #/ y el JSON.parse del listener
-        storage: window.localStorage
-      }
-    });
-
-    // ===== Elementos UI =====
-    const pageCanvas = document.getElementById('pageCanvas');
-    const whoami = document.getElementById('whoami');
-    const userEmail = document.getElementById('userEmail');
-    const userRole = document.getElementById('userRole');
-    const btnLogin = document.getElementById('btnLogin');
-    const userMenu = document.getElementById('userMenu');
-    const loginError = document.getElementById('loginError');
-    const formLogin = document.getElementById('formLogin');
-    const fabSave = document.getElementById('fabSave');
-    const editToolbar = document.getElementById('editToolbar');
-    const btnToggleEdit = document.getElementById('btnToggleEdit');
-    const btnLogout = document.getElementById('btnLogout');
-
-    const PAGE_SLUG = 'home';
-
-    let currentUser = null;
-    let role = 'viewer';
-    let editMode = false;
-    let selectedEl = null;
-
-    // ===== Util: limpiar clases/atributos de edición y serializar =====
-    function serializeCleanHTML() {
-      const clone = pageCanvas.cloneNode(true);
-      // quita clases de edición/selección
-      clone.querySelectorAll('.editing-outline').forEach(el => el.classList.remove('editing-outline'));
-      // quita contenteditable
-      clone.removeAttribute('contenteditable');
-      clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
-      return clone.innerHTML;
-    }
-
-    function setSelected(el) {
-      if (!editMode) return;
-      if (selectedEl) selectedEl.classList.remove('editing-outline');
-      selectedEl = el;
-      if (selectedEl) selectedEl.classList.add('editing-outline');
-    }
-
-    // Click para seleccionar nodo mientras editas
-    pageCanvas.addEventListener('click', (e) => {
-      if (!editMode) return;
-      e.preventDefault();
-      e.stopPropagation();
-      setSelected(e.target.closest('#pageCanvas *'));
-    });
-
-    // ===== Toolbar acciones =====
-    editToolbar.addEventListener('click', (e) => {
-      const btn = e.target.closest('button[data-action]');
-      if (!btn) return;
-      const action = btn.dataset.action;
-      const host = selectedEl || pageCanvas;
-
-      const append = (html) => {
-        host.insertAdjacentHTML('beforeend', html);
-      };
-
-      switch (action) {
-        case 'add:h1':
-          append('<h1 contenteditable="true" class="mt-3">Nuevo Título</h1>');
-          break;
-        case 'add:p':
-          append('<p contenteditable="true">Nuevo párrafo. Haz clic para editar este texto.</p>');
-          break;
-        case 'add:button':
-          append('<a href="#" class="btn btn-success my-2" contenteditable="false">Acción</a>');
-          break;
-        case 'add:card':
-          append(`
-            <div class="card my-3">
-              <div class="card-body">
-                <h5 class="card-title" contenteditable="true">Título de la card</h5>
-                <p class="card-text" contenteditable="true">Contenido de ejemplo para la card.</p>
-                <a class="btn btn-outline-success" href="#" contenteditable="false">Ver más</a>
-              </div>
-            </div>
-          `);
-          break;
-        case 'add:row':
-          append(`
-            <div class="row g-3 my-2">
-              <div class="col-md-6"><div class="p-3 bg-white rounded shadow-sm" contenteditable="true">Columna 1</div></div>
-              <div class="col-md-6"><div class="p-3 bg-white rounded shadow-sm" contenteditable="true">Columna 2</div></div>
-            </div>
-          `);
-          break;
-        case 'add:img':
-          const url = prompt('URL de la imagen:');
-          if (url) append(`<img src="${url}" alt="Imagen" class="img-fluid my-2">`);
-          break;
-        case 'delete':
-          if (selectedEl && selectedEl !== pageCanvas) {
-            const parent = selectedEl.parentElement;
-            selectedEl.remove();
-            setSelected(parent);
-          }
-          break;
-        case 'duplicate':
-          if (selectedEl && selectedEl !== pageCanvas) {
-            selectedEl.insertAdjacentHTML('afterend', selectedEl.outerHTML);
-          }
-          break;
-      }
-    });
-
-    // ===== Toggle edición / Guardar =====
-    async function toggleEdit() {
-      editMode = !editMode;
-
-      if (editMode) {
-        // Activar edición
-        pageCanvas.contentEditable = true;
-        editToolbar.style.display = 'block';
-        fabSave.classList.remove('d-none');
-        btnToggleEdit.textContent = 'Desactivar edición (guardar)';
-      } else {
-        // Guardar
-        pageCanvas.contentEditable = false;
-        editToolbar.style.display = 'none';
-        fabSave.classList.add('d-none');
-        if (selectedEl) selectedEl.classList.remove('editing-outline');
-
-        const html = serializeCleanHTML();
-        const { error } = await supabase
-          .from('pagina')
-          .upsert({ slug: PAGE_SLUG, html_content: html });
-
-        if (error) {
-          alert('❌ Error guardando: ' + error.message);
-        } else {
-          alert('✅ Cambios guardados');
-          // recargar desde DB para asegurar consistencia
-          await loadPage();
-        }
-        btnToggleEdit.textContent = 'Activar edición';
-      }
-    }
-
-    btnToggleEdit.addEventListener('click', (e) => { e.preventDefault(); toggleEdit(); });
-    fabSave.addEventListener('click', toggleEdit);
-
-    // ===== Cargar contenido =====
-    async function loadPage() {
-      const { data, error } = await supabase.from('pagina').select('html_content').eq('slug', PAGE_SLUG).single();
-      if (!error && data) {
-        pageCanvas.innerHTML = data.html_content;
-      } else if (error) {
-        console.error(error);
-      }
-    }
-
-    // ===== Auth =====
-    async function refreshUI(session) {
-      currentUser = session?.user || null;
-
-      if (!currentUser) {
-        whoami.classList.add('d-none');
-        userMenu.classList.add('d-none');
-        btnLogin.classList.remove('d-none');
-        btnToggleEdit.parentElement.classList.add('d-none');
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles').select('role').eq('id', currentUser.id).single();
-
-      role = profile?.role || 'viewer';
-      userEmail.textContent = currentUser.email;
-      userRole.textContent = role;
-
-      whoami.classList.remove('d-none');
-      userMenu.classList.remove('d-none');
-      btnLogin.classList.add('d-none');
-
-      // solo admin puede ver/usar edición
-      btnToggleEdit.parentElement.classList.toggle('d-none', role !== 'admin');
-    }
-
-    // estado de sesión
-    supabase.auth.onAuthStateChange(async (_event, session) => {
-      await refreshUI(session);
-    });
-
-    // al cargar
-    (async () => {
-      // Limpieza preventiva si alguna extensión ensució localStorage
-      try {
-        Object.keys(localStorage)
-          .filter(k => k.startsWith('sb-') || k.startsWith('supabase'))
-          .forEach(k => {
-            const v = localStorage.getItem(k);
-            // Si no luce como JSON válido, lo limpiamos
-            try { JSON.parse(v); } catch { localStorage.removeItem(k); }
-          });
-      } catch {}
+    // Configuración de Supabase
+    const SUPABASE_URL = 'https://tu-proyecto.supabase.co';
+    const SUPABASE_ANON_KEY = 'tu-anon-key';
+    
+    // Inicializar Supabase (reemplaza con tus credenciales)
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // Elementos del DOM
+    const loginSection = document.getElementById('login-section');
+    const registerSection = document.getElementById('register-section');
+    const dashboardSection = document.getElementById('dashboard-section');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const logoutBtn = document.getElementById('logout-btn');
+    const registerLink = document.getElementById('register-link');
+    const loginLink = document.getElementById('login-link');
+    
+    // Verificar estado de autenticación al cargar
+    document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      await refreshUI(session);
-      await loadPage();
-    })();
-
-    // Login
-    formLogin.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      loginError.classList.add('d-none');
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        loginError.textContent = 'Error: ' + error.message;
-        loginError.classList.remove('d-none');
+      
+      if (session) {
+        showDashboard();
       } else {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('modalLogin'));
-        modal?.hide();
+        showLogin();
       }
     });
-
-    // Logout
-    btnLogout.addEventListener('click', async (e) => {
+    
+    // Manejo de formulario de login
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      // Si estabas editando, guarda primero
-      if (editMode) await toggleEdit();
-      await supabase.auth.signOut();
-      location.reload();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        alert('Error al iniciar sesión: ' + error.message);
+      } else {
+        showDashboard();
+      }
+    });
+    
+    // Manejo de formulario de registro
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('reg-name').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      const role = document.getElementById('reg-role').value;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            role
+          }
+        }
+      });
+      
+      if (error) {
+        alert('Error al registrar: ' + error.message);
+      } else {
+        alert('Registro exitoso. Por favor, verifica tu correo electrónico.');
+        showLogin();
+      }
+    });
+    
+    // Cerrar sesión
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const { error } = await supabase.auth.signOut();
+      if (!error) {
+        showLogin();
+      }
+    });
+    
+    // Navegación entre login y registro
+    registerLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showRegister();
+    });
+    
+    loginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      showLogin();
+    });
+    
+    // Funciones para mostrar secciones
+    function showLogin() {
+      loginSection.classList.remove('d-none');
+      registerSection.classList.add('d-none');
+      dashboardSection.classList.add('d-none');
+    }
+    
+    function showRegister() {
+      loginSection.classList.add('d-none');
+      registerSection.classList.remove('d-none');
+      dashboardSection.classList.add('d-none');
+    }
+    
+    function showDashboard() {
+      loginSection.classList.add('d-none');
+      registerSection.classList.add('d-none');
+      dashboardSection.classList.remove('d-none');
+    }
+    
+    // Navegación entre secciones
+    document.querySelectorAll('.nav-link, .dashboard-card').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const section = this.getAttribute('data-section');
+        if (section) {
+          alert(`Navegando a la sección: ${section}`);
+          // Aquí se cargaría el contenido de la sección correspondiente
+        }
+      });
+    });
+    
+    // Gráfico de progreso (simulado)
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    const progressChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Completado', 'En progreso', 'Pendiente'],
+        datasets: [{
+          data: [45, 30, 25],
+          backgroundColor: ['#4caf50', '#2196f3', '#ff9800']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
     });
   </script>
 </body>
