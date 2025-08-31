@@ -18,59 +18,6 @@
     body {
       background-color: #f8f9fa;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .login-container {
-      background-color: white;
-      border-radius: 10px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-      padding: 30px;
-    }
-    
-    .logo {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-    
-    .logo i {
-      font-size: 3rem;
-      color: var(--primary-color);
-    }
-    
-    .form-control:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
-    }
-    
-    .btn-primary {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--dark-color);
-      border-color: var(--dark-color);
-    }
-    
-    .credentials-hint {
-      background-color: #e8f5e9;
-      border-left: 4px solid var(--primary-color);
-      padding: 15px;
-      border-radius: 4px;
-      margin-top: 20px;
-    }
-    
-    .platform-container {
-      display: none;
-      width: 100%;
-      height: 100vh;
-      overflow: hidden;
     }
     
     .navbar {
@@ -80,8 +27,6 @@
     
     .main-content {
       padding: 20px;
-      height: calc(100vh - 76px);
-      overflow-y: auto;
     }
     
     .card {
@@ -123,202 +68,252 @@
       margin-right: 15px;
     }
     
-    @media (max-width: 768px) {
-      .main-content {
-        padding: 15px;
-      }
+    .login-modal .modal-content {
+      border-radius: 10px;
+    }
+    
+    .login-logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .login-logo i {
+      font-size: 3rem;
+      color: var(--primary-color);
+    }
+    
+    .credentials-hint {
+      background-color: #e8f5e9;
+      border-left: 4px solid var(--primary-color);
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--dark-color);
+      border-color: var(--dark-color);
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
+    }
+    
+    .guest-message {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
-  <!-- Contenedor de Login -->
-  <div class="login-container" id="login-container">
-    <div class="logo">
-      <i class="fas fa-chart-line"></i>
-      <h2 class="mt-2">Indicadores Daule</h2>
-    </div>
-    
-    <form id="login-form">
-      <div class="mb-3">
-        <label for="email" class="form-label">Correo electrónico</label>
-        <input type="email" class="form-control" id="email" required placeholder="usuario@ejemplo.com">
-      </div>
-      <div class="mb-3">
-        <label for="password" class="form-label">Contraseña</label>
-        <input type="password" class="form-control" id="password" required placeholder="Ingrese su contraseña">
-      </div>
-      <button type="submit" class="btn btn-primary w-100">Ingresar</button>
-    </form>
-    
-    <div class="credentials-hint">
-      <h6><i class="fas fa-info-circle me-2"></i>Credenciales de acceso</h6>
-      <p class="mb-1"><strong>Administrador:</strong> admin@daule.edu.ec / admin123</p>
-      <p class="mb-0"><strong>Técnico:</strong> tecnico@daule.edu.ec / tecnico123</p>
-    </div>
-  </div>
-
-  <!-- Contenedor de la Plataforma -->
-  <div class="platform-container" id="platform-container">
-    <!-- Barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#"><i class="fas fa-chart-line me-2"></i>Indicadores Daule</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav me-auto">
-            <li class="nav-item"><a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-bullseye me-1"></i> Metas</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-chart-bar me-1"></i> Indicadores</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-tasks me-1"></i> Avances</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-file-pdf me-1"></i> Reportes</a></li>
-          </ul>
-          <div class="user-info">
-            <i class="fas fa-user me-1"></i> <span id="user-display-name">Usuario</span>
-          </div>
-          <button class="btn btn-outline-light btn-sm" id="logout-btn">
-            <i class="fas fa-sign-out-alt me-1"></i> Salir
+  <!-- Barra de navegación -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><i class="fas fa-chart-line me-2"></i>Indicadores Daule</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-bullseye me-1"></i> Metas</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-chart-bar me-1"></i> Indicadores</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-tasks me-1"></i> Avances</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-file-pdf me-1"></i> Reportes</a></li>
+        </ul>
+        <div class="user-info" id="user-info">
+          <button class="btn btn-outline-light btn-sm" id="login-btn">
+            <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
           </button>
         </div>
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <!-- Contenido principal -->
-    <div class="main-content">
-      <div class="container-fluid">
-        <h2 class="section-title">Panel de Indicadores</h2>
-        <p>Bienvenido, seleccione una opción del menú para gestionar metas, indicadores, avances o reportes.</p>
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <div class="container-fluid">
+      <div class="guest-message">
+        <h5><i class="fas fa-info-circle me-2"></i>Modo Invitado</h5>
+        <p class="mb-0">Actualmente está viendo la plataforma en modo de solo lectura. <a href="#" id="login-link">Inicie sesión</a> para acceder a todas las funcionalidades.</p>
+      </div>
+      
+      <h2 class="section-title">Panel de Indicadores</h2>
+      <p>Bienvenido, seleccione una opción del menú para gestionar metas, indicadores, avances o reportes.</p>
 
-        <!-- Tarjetas de Dashboard -->
-        <div class="row mb-4">
-          <div class="col-md-3 mb-3">
-            <div class="card text-white bg-primary dashboard-card">
-              <div class="card-body">
-                <i class="fas fa-bullseye"></i>
-                <h5 class="card-title">Metas</h5>
-                <p class="card-text">Gestionar metas del proyecto.</p>
-                <span class="badge bg-light text-dark">3 activas</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-3 mb-3">
-            <div class="card text-white bg-info dashboard-card">
-              <div class="card-body">
-                <i class="fas fa-chart-bar"></i>
-                <h5 class="card-title">Indicadores</h5>
-                <p class="card-text">Visualizar y editar indicadores.</p>
-                <span class="badge bg-light text-dark">12 registrados</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-3 mb-3">
-            <div class="card text-white bg-warning dashboard-card">
-              <div class="card-body">
-                <i class="fas fa-tasks"></i>
-                <h5 class="card-title">Avances</h5>
-                <p class="card-text">Registrar progreso por indicador.</p>
-                <span class="badge bg-light text-dark">45 registros</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-3 mb-3">
-            <div class="card text-white bg-success dashboard-card">
-              <div class="card-body">
-                <i class="fas fa-file-pdf"></i>
-                <h5 class="card-title">Reportes</h5>
-                <p class="card-text">Generar reportes automáticos.</p>
-                <span class="badge bg-light text-dark">3 generados</span>
-              </div>
+      <!-- Tarjetas de Dashboard -->
+      <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+          <div class="card text-white bg-primary dashboard-card">
+            <div class="card-body">
+              <i class="fas fa-bullseye"></i>
+              <h5 class="card-title">Metas</h5>
+              <p class="card-text">Gestionar metas del proyecto.</p>
+              <span class="badge bg-light text-dark">3 activas</span>
             </div>
           </div>
         </div>
 
-        <!-- Resumen de avances -->
-        <div class="row">
-          <div class="col-md-8">
-            <div class="card">
-              <div class="card-header bg-light">
-                <h5 class="mb-0">Avances Recientes</h5>
+        <div class="col-md-3 mb-3">
+          <div class="card text-white bg-info dashboard-card">
+            <div class="card-body">
+              <i class="fas fa-chart-bar"></i>
+              <h5 class="card-title">Indicadores</h5>
+              <p class="card-text">Visualizar y editar indicadores.</p>
+              <span class="badge bg-light text-dark">12 registrados</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+          <div class="card text-white bg-warning dashboard-card">
+            <div class="card-body">
+              <i class="fas fa-tasks"></i>
+              <h5 class="card-title">Avances</h5>
+              <p class="card-text">Registrar progreso por indicador.</p>
+              <span class="badge bg-light text-dark">45 registros</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+          <div class="card text-white bg-success dashboard-card">
+            <div class="card-body">
+              <i class="fas fa-file-pdf"></i>
+              <h5 class="card-title">Reportes</h5>
+              <p class="card-text">Generar reportes automáticos.</p>
+              <span class="badge bg-light text-dark">3 generados</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de avances -->
+      <div class="row">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">Avances Recientes</h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Indicador</th>
+                      <th>Meta</th>
+                      <th>Avance</th>
+                      <th>Fecha</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Residuos caracterizados</td>
+                      <td>1000 toneladas</td>
+                      <td>
+                        <div class="progress">
+                          <div class="progress-bar bg-success" style="width: 75%">75%</div>
+                        </div>
+                      </td>
+                      <td>15/08/2023</td>
+                    </tr>
+                    <tr>
+                      <td>Hogares encuestados</td>
+                      <td>500 hogares</td>
+                      <td>
+                        <div class="progress">
+                          <div class="progress-bar bg-info" style="width: 40%">40%</div>
+                        </div>
+                      </td>
+                      <td>14/08/2023</td>
+                    </tr>
+                    <tr>
+                      <td>Personal capacitado</td>
+                      <td>50 personas</td>
+                      <td>
+                        <div class="progress">
+                          <div class="progress-bar bg-warning" style="width: 90%">90%</div>
+                        </div>
+                      </td>
+                      <td>10/08/2023</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div class="card-body">
-                <div class="table-responsive">
-                  <table class="table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Indicador</th>
-                        <th>Meta</th>
-                        <th>Avance</th>
-                        <th>Fecha</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>Residuos caracterizados</td>
-                        <td>1000 toneladas</td>
-                        <td>
-                          <div class="progress">
-                            <div class="progress-bar bg-success" style="width: 75%">75%</div>
-                          </div>
-                        </td>
-                        <td>15/08/2023</td>
-                      </tr>
-                      <tr>
-                        <td>Hogares encuestados</td>
-                        <td>500 hogares</td>
-                        <td>
-                          <div class="progress">
-                            <div class="progress-bar bg-info" style="width: 40%">40%</div>
-                          </div>
-                        </td>
-                        <td>14/08/2023</td>
-                      </tr>
-                      <tr>
-                        <td>Personal capacitado</td>
-                        <td>50 personas</td>
-                        <td>
-                          <div class="progress">
-                            <div class="progress-bar bg-warning" style="width: 90%">90%</div>
-                          </div>
-                        </td>
-                        <td>10/08/2023</td>
-                      </tr>
-                    </tbody>
-                  </table>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">Estado General</h5>
+            </div>
+            <div class="card-body text-center">
+              <div class="mb-4">
+                <h6>Completado</h6>
+                <div class="progress mb-2">
+                  <div class="progress-bar bg-success" style="width: 45%">45%</div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <h6>En progreso</h6>
+                <div class="progress mb-2">
+                  <div class="progress-bar bg-info" style="width: 30%">30%</div>
+                </div>
+              </div>
+              <div>
+                <h6>Pendiente</h6>
+                <div class="progress mb-2">
+                  <div class="progress-bar bg-warning" style="width: 25%">25%</div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Login -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content login-modal">
+        <div class="modal-header">
+          <h5 class="modal-title" id="loginModalLabel">Iniciar Sesión</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="login-logo">
+            <i class="fas fa-chart-line"></i>
+            <h4 class="mt-2">Indicadores Daule</h4>
+          </div>
           
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header bg-light">
-                <h5 class="mb-0">Estado General</h5>
-              </div>
-              <div class="card-body text-center">
-                <div class="mb-4">
-                  <h6>Completado</h6>
-                  <div class="progress mb-2">
-                    <div class="progress-bar bg-success" style="width: 45%">45%</div>
-                  </div>
-                </div>
-                <div class="mb-4">
-                  <h6>En progreso</h6>
-                  <div class="progress mb-2">
-                    <div class="progress-bar bg-info" style="width: 30%">30%</div>
-                  </div>
-                </div>
-                <div>
-                  <h6>Pendiente</h6>
-                  <div class="progress mb-2">
-                    <div class="progress-bar bg-warning" style="width: 25%">25%</div>
-                  </div>
-                </div>
-              </div>
+          <form id="login-form">
+            <div class="mb-3">
+              <label for="email" class="form-label">Correo electrónico</label>
+              <input type="email" class="form-control" id="email" required placeholder="usuario@ejemplo.com">
             </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Contraseña</label>
+              <input type="password" class="form-control" id="password" required placeholder="Ingrese su contraseña">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+          </form>
+          
+          <div class="credentials-hint">
+            <h6><i class="fas fa-info-circle me-2"></i>Credenciales de acceso</h6>
+            <p class="mb-1"><strong>Administrador:</strong> admin@daule.edu.ec / admin123</p>
+            <p class="mb-0"><strong>Técnico:</strong> tecnico@daule.edu.ec / tecnico123</p>
           </div>
         </div>
       </div>
@@ -328,11 +323,11 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const loginContainer = document.getElementById('login-container');
-      const platformContainer = document.getElementById('platform-container');
+      const loginBtn = document.getElementById('login-btn');
+      const loginLink = document.getElementById('login-link');
+      const userInfo = document.getElementById('user-info');
       const loginForm = document.getElementById('login-form');
-      const logoutBtn = document.getElementById('logout-btn');
-      const userDisplayName = document.getElementById('user-display-name');
+      const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
       
       // Credenciales válidas
       const validUsers = {
@@ -343,8 +338,19 @@
       // Verificar si ya hay una sesión activa
       const currentUser = JSON.parse(localStorage.getItem('currentUser'));
       if (currentUser && validUsers[currentUser.email]) {
-        showPlatform(currentUser);
+        updateUIForLoggedInUser(currentUser);
       }
+      
+      // Abrir modal de login al hacer clic en el botón
+      loginBtn.addEventListener('click', function() {
+        loginModal.show();
+      });
+      
+      // Abrir modal de login al hacer clic en el enlace
+      loginLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        loginModal.show();
+      });
       
       // Manejar el envío del formulario de login
       loginForm.addEventListener('submit', function(e) {
@@ -363,24 +369,37 @@
           // Guardar usuario en localStorage
           localStorage.setItem('currentUser', JSON.stringify(user));
           
-          // Mostrar plataforma
-          showPlatform(user);
+          // Actualizar la UI
+          updateUIForLoggedInUser(user);
+          
+          // Cerrar el modal
+          loginModal.hide();
+          
+          // Limpiar el formulario
+          loginForm.reset();
         } else {
           alert('Credenciales incorrectas. Por favor, intente nuevamente.');
         }
       });
       
-      // Manejar el cierre de sesión
-      logoutBtn.addEventListener('click', function() {
-        localStorage.removeItem('currentUser');
-        showLogin();
-      });
-      
-      // Función para mostrar la plataforma
-      function showPlatform(user) {
-        loginContainer.style.display = 'none';
-        platformContainer.style.display = 'block';
-        userDisplayName.textContent = user.name;
+      // Función para actualizar la UI cuando un usuario inicia sesión
+      function updateUIForLoggedInUser(user) {
+        // Cambiar el botón de login por información del usuario y botón de logout
+        userInfo.innerHTML = `
+          <span class="me-2"><i class="fas fa-user me-1"></i> ${user.name}</span>
+          <button class="btn btn-outline-light btn-sm" id="logout-btn">
+            <i class="fas fa-sign-out-alt me-1"></i> Salir
+          </button>
+        `;
+        
+        // Ocultar el mensaje de invitado
+        document.querySelector('.guest-message').style.display = 'none';
+        
+        // Configurar el evento para el botón de logout
+        document.getElementById('logout-btn').addEventListener('click', function() {
+          localStorage.removeItem('currentUser');
+          location.reload();
+        });
         
         // Ajustar permisos según el rol
         if (user.role === 'tecnico') {
@@ -388,23 +407,6 @@
           document.querySelectorAll('.nav-link')[4].style.display = 'none'; // Reportes
         }
       }
-      
-      // Función para mostrar el login
-      function showLogin() {
-        loginContainer.style.display = 'flex';
-        platformContainer.style.display = 'none';
-        loginForm.reset();
-      }
-      
-      // Configurar la altura del contenido principal
-      function adjustMainContentHeight() {
-        const navbarHeight = document.querySelector('.navbar').offsetHeight;
-        const mainContent = document.querySelector('.main-content');
-        mainContent.style.height = `calc(100vh - ${navbarHeight}px)`;
-      }
-      
-      window.addEventListener('resize', adjustMainContentHeight);
-      adjustMainContentHeight();
     });
   </script>
 </body>
