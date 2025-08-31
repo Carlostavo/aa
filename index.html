@@ -119,11 +119,13 @@
       border-radius: 4px;
       background-color: #f8fff8;
       min-height: 20px;
+      transition: all 0.3s;
     }
     
     .edit-mode .editable:hover {
       border-color: var(--primary-color);
       background-color: #e8f5e9;
+      cursor: pointer;
     }
     
     .edit-toolbar {
@@ -135,6 +137,64 @@
       padding: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .editor-panel {
+      position: fixed;
+      top: 120px;
+      right: 20px;
+      z-index: 1000;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 300px;
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+    }
+    
+    .editor-tabs {
+      margin-bottom: 15px;
+    }
+    
+    .element-actions {
+      position: absolute;
+      top: -30px;
+      right: 0;
+      background: white;
+      padding: 5px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: none;
+    }
+    
+    .editable:hover .element-actions {
+      display: flex;
+    }
+    
+    .element-actions button {
+      padding: 2px 5px;
+      margin: 0 2px;
+    }
+    
+    .content-preview {
+      max-width: 100%;
+      max-height: 150px;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+    
+    .editor-section {
+      margin-bottom: 15px;
+    }
+    
+    .editor-section h6 {
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -173,7 +233,96 @@
         <i class="fas fa-times me-1"></i> Cancelar
       </button>
     </div>
-    <span class="ms-2 text-muted">Modo edición</span>
+    <span class="ms-2 text-muted">Modo edición activado</span>
+  </div>
+
+  <!-- Panel de editor (inicialmente oculto) -->
+  <div class="editor-panel d-none" id="editor-panel">
+    <div class="editor-tabs">
+      <h5>Editor de Contenido</h5>
+    </div>
+    
+    <div class="editor-section">
+      <h6>Texto</h6>
+      <textarea class="form-control mb-2" id="editor-text" rows="4" placeholder="Escribe tu texto aquí..."></textarea>
+      <div class="d-grid gap-2">
+        <button class="btn btn-sm btn-primary" id="apply-text-btn">
+          <i class="fas fa-font me-1"></i> Aplicar Texto
+        </button>
+      </div>
+    </div>
+    
+    <div class="editor-section">
+      <h6>Insertar Imagen</h6>
+      <input type="text" class="form-control mb-2" id="image-url" placeholder="URL de la imagen">
+      <div class="mb-2">O</div>
+      <input type="file" class="form-control mb-2" id="image-upload" accept="image/*">
+      <div class="d-grid gap-2">
+        <button class="btn btn-sm btn-info" id="insert-image-btn">
+          <i class="fas fa-image me-1"></i> Insertar Imagen
+        </button>
+      </div>
+      <div id="image-preview-container" class="d-none">
+        <img id="image-preview" class="content-preview">
+      </div>
+    </div>
+    
+    <div class="editor-section">
+      <h6>Insertar Video</h6>
+      <input type="text" class="form-control mb-2" id="video-url" placeholder="URL del video (YouTube/Vimeo)">
+      <div class="form-text mb-2">Pega el enlace embed o el URL directo</div>
+      <div class="d-grid gap-2">
+        <button class="btn btn-sm btn-info" id="insert-video-btn">
+          <i class="fas fa-video me-1"></i> Insertar Video
+        </button>
+      </div>
+    </div>
+    
+    <div class="editor-section">
+      <h6>Estilo</h6>
+      <div class="row mb-2">
+        <div class="col">
+          <select class="form-select" id="font-family">
+            <option value="">Fuente</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option>
+            <option value="'Times New Roman', serif">Times New Roman</option>
+            <option value="'Courier New', monospace">Courier New</option>
+          </select>
+        </div>
+      </div>
+      <div class="row mb-2">
+        <div class="col">
+          <select class="form-select" id="font-size">
+            <option value="">Tamaño</option>
+            <option value="12px">Pequeño (12px)</option>
+            <option value="16px">Normal (16px)</option>
+            <option value="20px">Grande (20px)</option>
+            <option value="24px">Muy Grande (24px)</option>
+          </select>
+        </div>
+        <div class="col">
+          <input type="color" class="form-control form-control-color" id="font-color" value="#000000" title="Color de texto">
+        </div>
+      </div>
+      <div class="d-grid gap-2">
+        <button class="btn btn-sm btn-secondary" id="apply-style-btn">
+          <i class="fas fa-paint-brush me-1"></i> Aplicar Estilo
+        </button>
+      </div>
+    </div>
+    
+    <div class="editor-section">
+      <h6>Acciones</h6>
+      <div class="d-grid gap-2">
+        <button class="btn btn-sm btn-warning" id="add-element-btn">
+          <i class="fas fa-plus me-1"></i> Añadir Elemento
+        </button>
+        <button class="btn btn-sm btn-danger" id="remove-element-btn">
+          <i class="fas fa-trash me-1"></i> Eliminar Elemento
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Contenido principal -->
@@ -372,9 +521,21 @@
       const loginForm = document.getElementById('login-form');
       const editModeBtn = document.getElementById('edit-mode-btn');
       const editToolbar = document.getElementById('edit-toolbar');
+      const editorPanel = document.getElementById('editor-panel');
       const saveChangesBtn = document.getElementById('save-changes-btn');
       const cancelEditBtn = document.getElementById('cancel-edit-btn');
       const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+      
+      // Elementos del editor
+      const applyTextBtn = document.getElementById('apply-text-btn');
+      const insertImageBtn = document.getElementById('insert-image-btn');
+      const insertVideoBtn = document.getElementById('insert-video-btn');
+      const applyStyleBtn = document.getElementById('apply-style-btn');
+      const addElementBtn = document.getElementById('add-element-btn');
+      const removeElementBtn = document.getElementById('remove-element-btn');
+      const imageUpload = document.getElementById('image-upload');
+      const imagePreview = document.getElementById('image-preview');
+      const imagePreviewContainer = document.getElementById('image-preview-container');
       
       // Credenciales válidas
       const validUsers = {
@@ -386,6 +547,7 @@
       let currentUser = null;
       let editMode = false;
       let originalContents = {};
+      let selectedElement = null;
       
       // Verificar si ya hay una sesión activa
       const savedUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -455,6 +617,138 @@
         disableEditMode();
       });
       
+      // Manejar la subida de imágenes
+      imageUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            imagePreview.src = event.target.result;
+            imagePreviewContainer.classList.remove('d-none');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+      
+      // Aplicar texto al elemento seleccionado
+      applyTextBtn.addEventListener('click', function() {
+        if (!selectedElement) {
+          alert('Por favor, seleccione un elemento primero.');
+          return;
+        }
+        
+        const text = document.getElementById('editor-text').value;
+        if (text) {
+          selectedElement.innerHTML = text;
+        }
+      });
+      
+      // Insertar imagen
+      insertImageBtn.addEventListener('click', function() {
+        if (!selectedElement) {
+          alert('Por favor, seleccione un elemento primero.');
+          return;
+        }
+        
+        const imageUrl = document.getElementById('image-url').value;
+        if (imageUrl) {
+          selectedElement.innerHTML = `<img src="${imageUrl}" class="img-fluid" alt="Imagen">`;
+        } else if (imagePreviewContainer.classList.contains('d-none') === false) {
+          selectedElement.innerHTML = `<img src="${imagePreview.src}" class="img-fluid" alt="Imagen">`;
+        } else {
+          alert('Por favor, proporcione una URL o suba una imagen.');
+        }
+      });
+      
+      // Insertar video
+      insertVideoBtn.addEventListener('click', function() {
+        if (!selectedElement) {
+          alert('Por favor, seleccione un elemento primero.');
+          return;
+        }
+        
+        const videoUrl = document.getElementById('video-url').value;
+        if (videoUrl) {
+          // Verificar si es un enlace de YouTube
+          if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+            let videoId = '';
+            if (videoUrl.includes('youtube.com')) {
+              videoId = videoUrl.split('v=')[1];
+              const ampersandPosition = videoId.indexOf('&');
+              if (ampersandPosition !== -1) {
+                videoId = videoId.substring(0, ampersandPosition);
+              }
+            } else if (videoUrl.includes('youtu.be')) {
+              videoId = videoUrl.split('/').pop();
+            }
+            
+            selectedElement.innerHTML = `
+              <div class="ratio ratio-16x9">
+                <iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
+              </div>
+            `;
+          } else {
+            selectedElement.innerHTML = `
+              <div class="ratio ratio-16x9">
+                <video controls>
+                  <source src="${videoUrl}" type="video/mp4">
+                  Tu navegador no soporta el elemento de video.
+                </video>
+              </div>
+            `;
+          }
+        } else {
+          alert('Por favor, introduzca la URL de un video.');
+        }
+      });
+      
+      // Aplicar estilos
+      applyStyleBtn.addEventListener('click', function() {
+        if (!selectedElement) {
+          alert('Por favor, seleccione un elemento primero.');
+          return;
+        }
+        
+        const fontFamily = document.getElementById('font-family').value;
+        const fontSize = document.getElementById('font-size').value;
+        const fontColor = document.getElementById('font-color').value;
+        
+        if (fontFamily) selectedElement.style.fontFamily = fontFamily;
+        if (fontSize) selectedElement.style.fontSize = fontSize;
+        if (fontColor) selectedElement.style.color = fontColor;
+      });
+      
+      // Añadir nuevo elemento
+      addElementBtn.addEventListener('click', function() {
+        const newElement = document.createElement('div');
+        newElement.className = 'editable mb-3 p-3 border rounded';
+        newElement.setAttribute('data-field', 'new-element-' + Date.now());
+        newElement.innerHTML = 'Nuevo elemento - haga clic para editar';
+        
+        // Insertar después del elemento seleccionado o al final del body
+        if (selectedElement && selectedElement.parentNode) {
+          selectedElement.parentNode.insertBefore(newElement, selectedElement.nextSibling);
+        } else {
+          document.querySelector('.main-content').appendChild(newElement);
+        }
+        
+        // Seleccionar el nuevo elemento
+        selectElement(newElement);
+      });
+      
+      // Eliminar elemento
+      removeElementBtn.addEventListener('click', function() {
+        if (!selectedElement) {
+          alert('Por favor, seleccione un elemento primero.');
+          return;
+        }
+        
+        if (confirm('¿Está seguro de que desea eliminar este elemento?')) {
+          selectedElement.remove();
+          selectedElement = null;
+        }
+      });
+      
       // Función para actualizar la UI cuando un usuario inicia sesión
       function updateUIForLoggedInUser(user) {
         // Cambiar el botón de login por información del usuario y botón de logout
@@ -489,6 +783,7 @@
         editMode = true;
         document.body.classList.add('edit-mode');
         editToolbar.classList.remove('d-none');
+        editorPanel.classList.remove('d-none');
         editModeBtn.innerHTML = '<i class="fas fa-times me-1"></i> Desactivar Edición';
         editModeBtn.classList.remove('btn-outline-primary');
         editModeBtn.classList.add('btn-primary');
@@ -498,6 +793,14 @@
           const field = el.getAttribute('data-field');
           originalContents[field] = el.innerHTML;
         });
+        
+        // Añadir event listeners para los elementos editables
+        document.querySelectorAll('.editable').forEach(el => {
+          el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            selectElement(this);
+          });
+        });
       }
       
       // Función para desactivar el modo edición
@@ -505,15 +808,37 @@
         editMode = false;
         document.body.classList.remove('edit-mode');
         editToolbar.classList.add('d-none');
+        editorPanel.classList.add('d-none');
         editModeBtn.innerHTML = '<i class="fas fa-edit me-1"></i> Modo Edición';
         editModeBtn.classList.remove('btn-primary');
         editModeBtn.classList.add('btn-outline-primary');
+        selectedElement = null;
         
         // Restaurar contenidos originales
         for (const field in originalContents) {
           const el = document.querySelector(`[data-field="${field}"]`);
           if (el) el.innerHTML = originalContents[field];
         }
+        
+        // Remover event listeners
+        document.querySelectorAll('.editable').forEach(el => {
+          el.replaceWith(el.cloneNode(true));
+        });
+      }
+      
+      // Función para seleccionar un elemento
+      function selectElement(element) {
+        // Quitar selección anterior
+        document.querySelectorAll('.editable').forEach(el => {
+          el.style.boxShadow = 'none';
+        });
+        
+        // Seleccionar nuevo elemento
+        selectedElement = element;
+        selectedElement.style.boxShadow = '0 0 0 2px #4caf50';
+        
+        // Actualizar editor con el contenido del elemento
+        document.getElementById('editor-text').value = selectedElement.innerHTML;
       }
       
       // Función para guardar cambios (aquí integrarías con Supabase)
@@ -522,47 +847,20 @@
         
         document.querySelectorAll('.editable').forEach(el => {
           const field = el.getAttribute('data-field');
-          changes[field] = el.innerHTML;
+          changes[field] = {
+            content: el.innerHTML,
+            styles: {
+              fontFamily: el.style.fontFamily,
+              fontSize: el.style.fontSize,
+              color: el.style.color
+            }
+          };
         });
         
         // Aquí iría el código para guardar en Supabase
         console.log('Cambios a guardar:', changes);
         alert('Cambios guardados correctamente (en una implementación real, se guardarían en Supabase)');
       }
-      
-      // Hacer elementos editables
-      document.addEventListener('click', function(e) {
-        if (!editMode) return;
-        
-        const editableEl = e.target.closest('.editable');
-        if (!editableEl) return;
-        
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const currentContent = editableEl.innerHTML;
-        const fieldType = editableEl.getAttribute('data-field');
-        
-        // Diferentes interfaces según el tipo de campo
-        if (fieldType.includes('progress')) {
-          const newValue = prompt('Ingrese el nuevo valor de progreso (0-100):', currentContent.replace('%', ''));
-          if (newValue !== null && !isNaN(newValue)) {
-            const progressValue = Math.min(100, Math.max(0, parseInt(newValue)));
-            editableEl.innerHTML = `${progressValue}%`;
-            editableEl.style.width = `${progressValue}%`;
-          }
-        } else if (fieldType.includes('icon')) {
-          const newIcon = prompt('Ingrese el nombre del icono de FontAwesome (ej: fa-chart-bar):', currentContent);
-          if (newIcon !== null) {
-            editableEl.innerHTML = `<i class="${newIcon}"></i>`;
-          }
-        } else {
-          const newContent = prompt('Editar contenido:', currentContent);
-          if (newContent !== null) {
-            editableEl.innerHTML = newContent;
-          }
-        }
-      });
     });
   </script>
 </body>
