@@ -6,7 +6,6 @@
   <title>Plataforma de Seguimiento - Daule</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
     :root {
       --primary-color: #2e7d32;
@@ -19,22 +18,34 @@
     body {
       background-color: #f8f9fa;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
-    .navbar {
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    
-    .card {
-      border: none;
+    .login-container {
+      background-color: white;
       border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      transition: transform 0.3s ease;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      padding: 30px;
     }
     
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    .logo {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    .logo i {
+      font-size: 3rem;
+      color: var(--primary-color);
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
     }
     
     .btn-primary {
@@ -47,17 +58,58 @@
       border-color: var(--dark-color);
     }
     
-    .table th {
-      background-color: var(--light-color);
+    .credentials-hint {
+      background-color: #e8f5e9;
+      border-left: 4px solid var(--primary-color);
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+    
+    .platform-container {
+      display: none;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .navbar {
+      background-color: var(--primary-color);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .main-content {
+      padding: 20px;
+      height: calc(100vh - 76px);
+      overflow-y: auto;
+    }
+    
+    .card {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+      height: 100%;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    
+    .dashboard-card {
+      cursor: pointer;
+      text-align: center;
+    }
+    
+    .dashboard-card i {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
     }
     
     .progress {
       height: 10px;
       border-radius: 5px;
-    }
-    
-    .dashboard-card {
-      cursor: pointer;
     }
     
     .section-title {
@@ -66,365 +118,294 @@
       margin-bottom: 20px;
     }
     
-    .login-container {
-      max-width: 400px;
-      margin: 100px auto;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      background-color: white;
+    .user-info {
+      color: white;
+      margin-right: 15px;
+    }
+    
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Barra de navegación -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#"><i class="fas fa-chart-line me-2"></i>Indicadores Daule</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link active" href="#" data-section="dashboard"><i class="fas fa-home me-1"></i> Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" data-section="metas"><i class="fas fa-bullseye me-1"></i> Metas</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" data-section="indicadores"><i class="fas fa-chart-bar me-1"></i> Indicadores</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" data-section="avances"><i class="fas fa-tasks me-1"></i> Avances</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" data-section="reportes"><i class="fas fa-file-pdf me-1"></i> Reportes</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" data-section="usuarios"><i class="fas fa-users me-1"></i> Usuarios</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" id="logout-btn"><i class="fas fa-sign-out-alt me-1"></i> Cerrar sesión</a></li>
-        </ul>
-      </div>
+  <!-- Contenedor de Login -->
+  <div class="login-container" id="login-container">
+    <div class="logo">
+      <i class="fas fa-chart-line"></i>
+      <h2 class="mt-2">Indicadores Daule</h2>
     </div>
-  </nav>
+    
+    <form id="login-form">
+      <div class="mb-3">
+        <label for="email" class="form-label">Correo electrónico</label>
+        <input type="email" class="form-control" id="email" required placeholder="usuario@ejemplo.com">
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="password" required placeholder="Ingrese su contraseña">
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+    </form>
+    
+    <div class="credentials-hint">
+      <h6><i class="fas fa-info-circle me-2"></i>Credenciales de acceso</h6>
+      <p class="mb-1"><strong>Administrador:</strong> admin@daule.edu.ec / admin123</p>
+      <p class="mb-0"><strong>Técnico:</strong> tecnico@daule.edu.ec / tecnico123</p>
+    </div>
+  </div>
 
-  <!-- Contenido principal -->
-  <div class="container mt-4">
-    <!-- Sección Dashboard -->
-    <div id="dashboard-section">
-      <h2 class="section-title">Panel de Indicadores</h2>
-      <p>Bienvenido, seleccione una opción del menú para gestionar metas, indicadores, avances o reportes.</p>
-
-      <!-- Dashboard Cards -->
-      <div class="row">
-        <div class="col-md-3">
-          <div class="card text-white bg-primary mb-3 dashboard-card" data-section="metas">
-            <div class="card-body text-center">
-              <i class="fas fa-bullseye fa-3x mb-2"></i>
-              <h5 class="card-title">Metas</h5>
-              <p class="card-text">Gestionar metas del proyecto.</p>
-              <span class="badge bg-light text-dark">5 activas</span>
-            </div>
+  <!-- Contenedor de la Plataforma -->
+  <div class="platform-container" id="platform-container">
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#"><i class="fas fa-chart-line me-2"></i>Indicadores Daule</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item"><a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-bullseye me-1"></i> Metas</a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-chart-bar me-1"></i> Indicadores</a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-tasks me-1"></i> Avances</a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-file-pdf me-1"></i> Reportes</a></li>
+          </ul>
+          <div class="user-info">
+            <i class="fas fa-user me-1"></i> <span id="user-display-name">Usuario</span>
           </div>
-        </div>
-
-        <div class="col-md-3">
-          <div class="card text-white bg-info mb-3 dashboard-card" data-section="indicadores">
-            <div class="card-body text-center">
-              <i class="fas fa-chart-bar fa-3x mb-2"></i>
-              <h5 class="card-title">Indicadores</h5>
-              <p class="card-text">Visualizar y editar indicadores.</p>
-              <span class="badge bg-light text-dark">12 registrados</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-3">
-          <div class="card text-white bg-warning mb-3 dashboard-card" data-section="avances">
-            <div class="card-body text-center">
-              <i class="fas fa-tasks fa-3x mb-2"></i>
-              <h5 class="card-title">Avances</h5>
-              <p class="card-text">Registrar progreso por indicador.</p>
-              <span class="badge bg-light text-dark">45 registros</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-3">
-          <div class="card text-white bg-success mb-3 dashboard-card" data-section="reportes">
-            <div class="card-body text-center">
-              <i class="fas fa-file-pdf fa-3x mb-2"></i>
-              <h5 class="card-title">Reportes</h5>
-              <p class="card-text">Generar reportes automáticos.</p>
-              <span class="badge bg-light text-dark">3 generados</span>
-            </div>
-          </div>
+          <button class="btn btn-outline-light btn-sm" id="logout-btn">
+            <i class="fas fa-sign-out-alt me-1"></i> Salir
+          </button>
         </div>
       </div>
+    </nav>
 
-      <!-- Resumen de avances -->
-      <div class="row mt-4">
-        <div class="col-md-8">
-          <div class="card">
-            <div class="card-header bg-light">
-              <h5 class="mb-0">Avances Recientes</h5>
+    <!-- Contenido principal -->
+    <div class="main-content">
+      <div class="container-fluid">
+        <h2 class="section-title">Panel de Indicadores</h2>
+        <p>Bienvenido, seleccione una opción del menú para gestionar metas, indicadores, avances o reportes.</p>
+
+        <!-- Tarjetas de Dashboard -->
+        <div class="row mb-4">
+          <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary dashboard-card">
+              <div class="card-body">
+                <i class="fas fa-bullseye"></i>
+                <h5 class="card-title">Metas</h5>
+                <p class="card-text">Gestionar metas del proyecto.</p>
+                <span class="badge bg-light text-dark">3 activas</span>
+              </div>
             </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>Indicador</th>
-                      <th>Meta</th>
-                      <th>Avance</th>
-                      <th>Fecha</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Residuos caracterizados</td>
-                      <td>1000 toneladas</td>
-                      <td>
-                        <div class="progress">
-                          <div class="progress-bar bg-success" style="width: 75%">75%</div>
-                        </div>
-                      </td>
-                      <td>15/08/2023</td>
-                    </tr>
-                    <tr>
-                      <td>Hogares encuestados</td>
-                      <td>500 hogares</td>
-                      <td>
-                        <div class="progress">
-                          <div class="progress-bar bg-info" style="width: 40%">40%</div>
-                        </div>
-                      </td>
-                      <td>14/08/2023</td>
-                    </tr>
-                    <tr>
-                      <td>Personal capacitado</td>
-                      <td>50 personas</td>
-                      <td>
-                        <div class="progress">
-                          <div class="progress-bar bg-warning" style="width: 90%">90%</div>
-                        </div>
-                      </td>
-                      <td>10/08/2023</td>
-                    </tr>
-                  </tbody>
-                </table>
+          </div>
+
+          <div class="col-md-3 mb-3">
+            <div class="card text-white bg-info dashboard-card">
+              <div class="card-body">
+                <i class="fas fa-chart-bar"></i>
+                <h5 class="card-title">Indicadores</h5>
+                <p class="card-text">Visualizar y editar indicadores.</p>
+                <span class="badge bg-light text-dark">12 registrados</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3 mb-3">
+            <div class="card text-white bg-warning dashboard-card">
+              <div class="card-body">
+                <i class="fas fa-tasks"></i>
+                <h5 class="card-title">Avances</h5>
+                <p class="card-text">Registrar progreso por indicador.</p>
+                <span class="badge bg-light text-dark">45 registros</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3 mb-3">
+            <div class="card text-white bg-success dashboard-card">
+              <div class="card-body">
+                <i class="fas fa-file-pdf"></i>
+                <h5 class="card-title">Reportes</h5>
+                <p class="card-text">Generar reportes automáticos.</p>
+                <span class="badge bg-light text-dark">3 generados</span>
               </div>
             </div>
           </div>
         </div>
-        
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-header bg-light">
-              <h5 class="mb-0">Estado General</h5>
-            </div>
-            <div class="card-body">
-              <canvas id="progressChart" width="100%" height="200"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Sección de Login (inicialmente oculta) -->
-    <div id="login-section" class="d-none">
-      <div class="login-container">
-        <h2 class="text-center mb-4">Iniciar Sesión</h2>
-        <form id="login-form">
-          <div class="mb-3">
-            <label for="email" class="form-label">Correo electrónico</label>
-            <input type="email" class="form-control" id="email" required>
+        <!-- Resumen de avances -->
+        <div class="row">
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Avances Recientes</h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Indicador</th>
+                        <th>Meta</th>
+                        <th>Avance</th>
+                        <th>Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Residuos caracterizados</td>
+                        <td>1000 toneladas</td>
+                        <td>
+                          <div class="progress">
+                            <div class="progress-bar bg-success" style="width: 75%">75%</div>
+                          </div>
+                        </td>
+                        <td>15/08/2023</td>
+                      </tr>
+                      <tr>
+                        <td>Hogares encuestados</td>
+                        <td>500 hogares</td>
+                        <td>
+                          <div class="progress">
+                            <div class="progress-bar bg-info" style="width: 40%">40%</div>
+                          </div>
+                        </td>
+                        <td>14/08/2023</td>
+                      </tr>
+                      <tr>
+                        <td>Personal capacitado</td>
+                        <td>50 personas</td>
+                        <td>
+                          <div class="progress">
+                            <div class="progress-bar bg-warning" style="width: 90%">90%</div>
+                          </div>
+                        </td>
+                        <td>10/08/2023</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="mb-3">
-            <label for="password" class="form-label">Contraseña</label>
-            <input type="password" class="form-control" id="password" required>
+          
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Estado General</h5>
+              </div>
+              <div class="card-body text-center">
+                <div class="mb-4">
+                  <h6>Completado</h6>
+                  <div class="progress mb-2">
+                    <div class="progress-bar bg-success" style="width: 45%">45%</div>
+                  </div>
+                </div>
+                <div class="mb-4">
+                  <h6>En progreso</h6>
+                  <div class="progress mb-2">
+                    <div class="progress-bar bg-info" style="width: 30%">30%</div>
+                  </div>
+                </div>
+                <div>
+                  <h6>Pendiente</h6>
+                  <div class="progress mb-2">
+                    <div class="progress-bar bg-warning" style="width: 25%">25%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <button type="submit" class="btn btn-success w-100">Ingresar</button>
-        </form>
-        <div class="mt-3 text-center">
-          <p>¿No tienes cuenta? <a href="#" id="register-link">Registrarse</a></p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sección de Registro (inicialmente oculta) -->
-    <div id="register-section" class="d-none">
-      <div class="login-container">
-        <h2 class="text-center mb-4">Crear Cuenta</h2>
-        <form id="register-form">
-          <div class="mb-3">
-            <label for="reg-name" class="form-label">Nombre completo</label>
-            <input type="text" class="form-control" id="reg-name" required>
-          </div>
-          <div class="mb-3">
-            <label for="reg-email" class="form-label">Correo electrónico</label>
-            <input type="email" class="form-control" id="reg-email" required>
-          </div>
-          <div class="mb-3">
-            <label for="reg-password" class="form-label">Contraseña</label>
-            <input type="password" class="form-control" id="reg-password" required>
-          </div>
-          <div class="mb-3">
-            <label for="reg-role" class="form-label">Rol</label>
-            <select class="form-select" id="reg-role" required>
-              <option value="">Seleccionar rol</option>
-              <option value="visualizador">Visualizador</option>
-              <option value="tecnico">Técnico</option>
-              <option value="administrador">Administrador</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Registrarse</button>
-        </form>
-        <div class="mt-3 text-center">
-          <p>¿Ya tienes cuenta? <a href="#" id="login-link">Iniciar sesión</a></p>
         </div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Configuración de Supabase
-    const SUPABASE_URL = "https://lhnluarfjyzheezfrexr.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
-    
-    // Inicializar Supabase (reemplaza con tus credenciales)
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // Elementos del DOM
-    const loginSection = document.getElementById('login-section');
-    const registerSection = document.getElementById('register-section');
-    const dashboardSection = document.getElementById('dashboard-section');
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    const logoutBtn = document.getElementById('logout-btn');
-    const registerLink = document.getElementById('register-link');
-    const loginLink = document.getElementById('login-link');
-    
-    // Verificar estado de autenticación al cargar
-    document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    document.addEventListener('DOMContentLoaded', function() {
+      const loginContainer = document.getElementById('login-container');
+      const platformContainer = document.getElementById('platform-container');
+      const loginForm = document.getElementById('login-form');
+      const logoutBtn = document.getElementById('logout-btn');
+      const userDisplayName = document.getElementById('user-display-name');
       
-      if (session) {
-        showDashboard();
-      } else {
-        showLogin();
+      // Credenciales válidas
+      const validUsers = {
+        'admin@daule.edu.ec': { password: 'admin123', name: 'Administrador', role: 'administrador' },
+        'tecnico@daule.edu.ec': { password: 'tecnico123', name: 'Técnico del Proyecto', role: 'tecnico' }
+      };
+      
+      // Verificar si ya hay una sesión activa
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      if (currentUser && validUsers[currentUser.email]) {
+        showPlatform(currentUser);
       }
-    });
-    
-    // Manejo de formulario de login
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (error) {
-        alert('Error al iniciar sesión: ' + error.message);
-      } else {
-        showDashboard();
-      }
-    });
-    
-    // Manejo de formulario de registro
-    registerForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('reg-name').value;
-      const email = document.getElementById('reg-email').value;
-      const password = document.getElementById('reg-password').value;
-      const role = document.getElementById('reg-role').value;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            role
-          }
-        }
-      });
-      
-      if (error) {
-        alert('Error al registrar: ' + error.message);
-      } else {
-        alert('Registro exitoso. Por favor, verifica tu correo electrónico.');
-        showLogin();
-      }
-    });
-    
-    // Cerrar sesión
-    logoutBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const { error } = await supabase.auth.signOut();
-      if (!error) {
-        showLogin();
-      }
-    });
-    
-    // Navegación entre login y registro
-    registerLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      showRegister();
-    });
-    
-    loginLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      showLogin();
-    });
-    
-    // Funciones para mostrar secciones
-    function showLogin() {
-      loginSection.classList.remove('d-none');
-      registerSection.classList.add('d-none');
-      dashboardSection.classList.add('d-none');
-    }
-    
-    function showRegister() {
-      loginSection.classList.add('d-none');
-      registerSection.classList.remove('d-none');
-      dashboardSection.classList.add('d-none');
-    }
-    
-    function showDashboard() {
-      loginSection.classList.add('d-none');
-      registerSection.classList.add('d-none');
-      dashboardSection.classList.remove('d-none');
-    }
-    
-    // Navegación entre secciones
-    document.querySelectorAll('.nav-link, .dashboard-card').forEach(item => {
-      item.addEventListener('click', function(e) {
+      // Manejar el envío del formulario de login
+      loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        const section = this.getAttribute('data-section');
-        if (section) {
-          alert(`Navegando a la sección: ${section}`);
-          // Aquí se cargaría el contenido de la sección correspondiente
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        if (validUsers[email] && validUsers[email].password === password) {
+          const user = {
+            email: email,
+            name: validUsers[email].name,
+            role: validUsers[email].role
+          };
+          
+          // Guardar usuario en localStorage
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          
+          // Mostrar plataforma
+          showPlatform(user);
+        } else {
+          alert('Credenciales incorrectas. Por favor, intente nuevamente.');
         }
       });
-    });
-    
-    // Gráfico de progreso (simulado)
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    const progressChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Completado', 'En progreso', 'Pendiente'],
-        datasets: [{
-          data: [45, 30, 25],
-          backgroundColor: ['#4caf50', '#2196f3', '#ff9800']
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
+      
+      // Manejar el cierre de sesión
+      logoutBtn.addEventListener('click', function() {
+        localStorage.removeItem('currentUser');
+        showLogin();
+      });
+      
+      // Función para mostrar la plataforma
+      function showPlatform(user) {
+        loginContainer.style.display = 'none';
+        platformContainer.style.display = 'block';
+        userDisplayName.textContent = user.name;
+        
+        // Ajustar permisos según el rol
+        if (user.role === 'tecnico') {
+          // Ocultar opciones de administración para técnicos
+          document.querySelectorAll('.nav-link')[4].style.display = 'none'; // Reportes
         }
       }
+      
+      // Función para mostrar el login
+      function showLogin() {
+        loginContainer.style.display = 'flex';
+        platformContainer.style.display = 'none';
+        loginForm.reset();
+      }
+      
+      // Configurar la altura del contenido principal
+      function adjustMainContentHeight() {
+        const navbarHeight = document.querySelector('.navbar').offsetHeight;
+        const mainContent = document.querySelector('.main-content');
+        mainContent.style.height = `calc(100vh - ${navbarHeight}px)`;
+      }
+      
+      window.addEventListener('resize', adjustMainContentHeight);
+      adjustMainContentHeight();
     });
   </script>
 </body>
 </html>
-
