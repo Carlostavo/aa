@@ -278,22 +278,34 @@
 
             if (user) {
                 // Si hay un usuario logueado
-                const { data: profile } = await supabase
+                const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('role')
                     .eq('id', user.id)
                     .single();
 
+                if (profileError) {
+                    console.error('Error al obtener el perfil:', profileError);
+                    loginLink.classList.remove('d-none');
+                    profileDropdown.classList.add('d-none');
+                    return; // Detiene la ejecución para evitar el TypeError
+                }
+
                 if (profile) {
                     const role = profile.role;
-                    userRoleDisplay.textContent = role.charAt(0).toUpperCase() + role.slice(1); // Muestra el rol con la primera letra en mayúscula
-                    loginLink.classList.add('d-none'); // Oculta el enlace de "Acceder"
-                    profileDropdown.classList.remove('d-none'); // Muestra el perfil
+                    userRoleDisplay.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+                    loginLink.classList.add('d-none');
+                    profileDropdown.classList.remove('d-none');
+                } else {
+                    console.warn('Usuario autenticado sin perfil asociado.');
+                    loginLink.classList.remove('d-none');
+                    profileDropdown.classList.add('d-none');
                 }
+
             } else {
                 // Si no hay un usuario logueado
-                loginLink.classList.remove('d-none'); // Muestra el enlace de "Acceder"
-                profileDropdown.classList.add('d-none'); // Oculta el perfil
+                loginLink.classList.remove('d-none');
+                profileDropdown.classList.add('d-none');
             }
         }
 
@@ -324,7 +336,7 @@
             if (error) {
                 console.error('Error al cerrar sesión:', error);
             } else {
-                window.location.reload(); // Recarga la página para restaurar la interfaz
+                updateUI(); // No recargar, solo actualizar la UI
             }
         });
 
