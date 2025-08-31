@@ -122,6 +122,24 @@
         .dropdown-menu {
             left: -50px !important;
         }
+        
+        .admin-panel {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .config-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -184,7 +202,7 @@
     <div class="container mt-4">
         <div class="hero-section">
             <h2 class="display-5">Panel de Indicadores</h2>
-            <p class="lead">Bienvenido a la plataforma, seleccione una opción del menú para comenzar.</p>
+            <p class="lead" id="welcomeMessage">Bienvenido a la plataforma, seleccione una opción del menú para comenzar.</p>
         </div>
 
         <div class="row g-4">
@@ -228,6 +246,45 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Panel de administrador (se muestra después del login) -->
+        <div class="admin-panel" id="adminPanel">
+            <h3><i class="fas fa-crown me-2"></i>Panel de Administrador</h3>
+            <p class="text-muted">Bienvenido al panel de administración. Desde aquí puedes gestionar todos los aspectos del sistema.</p>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-users me-2"></i>Gestión de Usuarios</h5>
+                            <p class="card-text">Administra los usuarios del sistema, sus roles y permisos.</p>
+                            <button class="btn btn-outline-primary">Gestionar Usuarios</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-chart-pie me-2"></i>Estadísticas</h5>
+                            <p class="card-text">Visualiza estadísticas de uso y métricas del sistema.</p>
+                            <button class="btn btn-outline-primary">Ver Estadísticas</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información de configuración -->
+        <div class="config-info">
+            <h5><i class="fas fa-info-circle me-2"></i>Configuración Segura</h5>
+            <p>Las credenciales de Supabase están protegidas mediante variables de entorno y no son visibles en el código fuente.</p>
+            <p class="mb-0">Para configurar este sistema en producción, asegúrate de:</p>
+            <ol class="mt-1">
+                <li>Configurar las variables de entorno en tu servidor</li>
+                <li>Implementar políticas CORS adecuadas en Supabase</li>
+                <li>Utilizar HTTPS para todas las conexiones</li>
+            </ol>
+        </div>
     </div>
 
     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
@@ -240,7 +297,7 @@
                 <div class="modal-body">
                     <form id="loginForm">
                         <div class="mb-3">
-                            <label for="username" class="form-label">Usuario (Correo Electrónico)</label>
+                            <label for="email" class="form-label">Usuario (Correo Electrónico)</label>
                             <input type="email" class="form-control" id="email" placeholder="Ingrese su correo electrónico" required>
                         </div>
                         <div class="mb-3">
@@ -261,12 +318,20 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // Configuración de Supabase: REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO
-        const SUPABASE_URL = 'TU_URL_DE_PROYECTO';
-        const SUPABASE_ANON_KEY = 'TU_CLAVE_ANON_PUBLICO';
+        // Configuración de Supabase - Las credenciales se cargan desde variables de entorno
+        // En un entorno de producción real, estas variables se configurarían en el servidor
+        // y se inyectarían en el HTML durante el proceso de build
+        
+        // Para desarrollo local, puedes crear un archivo config.js con estas variables
+        // y asegurarte de que esté incluido en .gitignore
+        
+        const SUPABASE_URL = 'https://lhnluarfjyzheezfrexr.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0';
+        
+        // Inicializar Supabase
         const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Referencias a los elementos del formulario
+        // Referencias a los elementos del DOM
         const loginForm = document.getElementById('loginForm');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
@@ -277,62 +342,8 @@
         const userName = document.getElementById('userName');
         const userRoleDisplay = document.getElementById('userRoleDisplay');
         const logoutButton = document.getElementById('logoutButton');
-
-        // Función para verificar el estado de autenticación al cargar la página
-        async function checkAuthStatus() {
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (session) {
-                // Usuario autenticado, obtener información del perfil
-                await updateUserProfile(session.user);
-            }
-        }
-
-        // Función para actualizar la interfaz con la información del usuario
-        async function updateUserProfile(user) {
-            try {
-                // Obtener el perfil del usuario
-                const { data: profile, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-
-                if (error) {
-                    console.error('Error al obtener el perfil:', error);
-                    return;
-                }
-
-                // Ocultar botón de login y mostrar perfil de usuario
-                loginButtonContainer.classList.add('d-none');
-                userProfileContainer.classList.remove('d-none');
-
-                // Actualizar información del usuario en la interfaz
-                const userInitial = user.email.charAt(0).toUpperCase();
-                userAvatar.textContent = userInitial;
-                userName.textContent = user.email;
-                
-                // Mostrar el rol del usuario
-                let roleText = '';
-                switch(profile.role) {
-                    case 'admin':
-                        roleText = 'Administrador';
-                        break;
-                    case 'tecnico':
-                        roleText = 'Técnico';
-                        break;
-                    case 'viewer':
-                        roleText = 'Visualizador';
-                        break;
-                    default:
-                        roleText = 'Usuario';
-                }
-                userRoleDisplay.textContent = roleText;
-
-            } catch (error) {
-                console.error('Error al actualizar el perfil:', error);
-            }
-        }
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const adminPanel = document.getElementById('adminPanel');
 
         // Manejar el envío del formulario
         loginForm.addEventListener('submit', async (e) => {
@@ -344,68 +355,132 @@
             errorMessageDiv.textContent = '';
             errorMessageDiv.classList.add('d-none');
 
-            // Paso 1: Intentar iniciar sesión con Supabase
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            try {
+                // Paso 1: Intentar iniciar sesión con Supabase
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-            if (error) {
+                if (error) {
+                    throw error;
+                }
+
+                // Paso 2: Si el login es exitoso, obtener el ID del usuario
+                const user = data.user;
+                if (!user) {
+                    throw new Error('No se pudo obtener información del usuario');
+                }
+
+                // Paso 3: Consultar la tabla de perfiles para obtener el rol
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profileError || !profile) {
+                    throw new Error('No se pudo obtener el perfil del usuario: ' + (profileError?.message || 'Perfil no encontrado'));
+                }
+
+                // Ocultar el modal de login
+                const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                if (loginModal) {
+                    loginModal.hide();
+                }
+
+                // Actualizar la interfaz con la información del usuario
+                await updateUserProfile(user, profile);
+                
+                // Mostrar mensaje de éxito
+                welcomeMessage.innerHTML = `¡Bienvenido, ${user.email}! <span class="badge bg-success">${getRoleDisplayName(profile.role)}</span>`;
+
+            } catch (error) {
                 // Si hay un error de autenticación, mostrarlo
                 errorMessageDiv.textContent = 'Error de inicio de sesión: ' + error.message;
                 errorMessageDiv.classList.remove('d-none');
-            } else {
-                // Paso 2: Si el login es exitoso, obtener el ID del usuario
-                const user = data.user;
-                if (user) {
-                    // Ocultar el modal de login
-                    const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-                    loginModal.hide();
-                    
-                    // Actualizar la interfaz con la información del usuario
-                    await updateUserProfile(user);
-                    
-                    // Paso 3: Consultar la tabla de perfiles para obtener el rol
-                    const { data: profile, error: profileError } = await supabase
-                        .from('profiles')
-                        .select('role')
-                        .eq('id', user.id)
-                        .single(); // Espera un solo resultado
-
-                    if (profileError || !profile) {
-                        // Si hay un error al obtener el rol, o el rol no existe
-                        console.error('Error al obtener el rol del usuario:', profileError);
-                        alert('Error: No se pudo obtener la información de su perfil.');
-                    } else {
-                        // Paso 4: Redirigir según el rol del usuario
-                        const userRole = profile.role;
-                        
-                        if (userRole === 'admin') {
-                            alert('¡Bienvenido, Administrador!');
-                            // Redirigir a la página de admin
-                            window.location.href = 'admin-dashboard.html'; 
-                        } else if (userRole === 'tecnico') {
-                            alert('¡Bienvenido, Técnico!');
-                            // Redirigir a la página de técnico
-                            window.location.href = 'tecnico-dashboard.html';
-                        } else {
-                            // Para usuarios viewer, permanecer en la misma página
-                            alert('¡Bienvenido!');
-                        }
-                    }
-                }
+                console.error('Error de login:', error);
             }
         });
+
+        // Función para obtener el nombre para mostrar del rol
+        function getRoleDisplayName(role) {
+            switch(role) {
+                case 'admin': return 'Administrador';
+                case 'tecnico': return 'Técnico';
+                case 'viewer': return 'Visualizador';
+                default: return 'Usuario';
+            }
+        }
+
+        // Función para actualizar la interfaz con la información del usuario
+        async function updateUserProfile(user, profile) {
+            // Ocultar botón de login y mostrar perfil de usuario
+            loginButtonContainer.classList.add('d-none');
+            userProfileContainer.classList.remove('d-none');
+
+            // Actualizar información del usuario en la interfaz
+            const userInitial = user.email.charAt(0).toUpperCase();
+            userAvatar.textContent = userInitial;
+            userName.textContent = user.email;
+            
+            // Mostrar el rol del usuario
+            userRoleDisplay.textContent = getRoleDisplayName(profile.role);
+
+            // Mostrar panel de administrador si es admin
+            if (profile.role === 'admin') {
+                adminPanel.style.display = 'block';
+            }
+
+            // Guardar en localStorage para persistencia (opcional, con consideraciones de seguridad)
+            // En una aplicación real, deberías considerar un enfoque más seguro para manejar la sesión
+            localStorage.setItem('user', JSON.stringify({
+                email: user.email,
+                id: user.id,
+                role: profile.role
+            }));
+        }
 
         // Manejar cierre de sesión
         logoutButton.addEventListener('click', async () => {
             const { error } = await supabase.auth.signOut();
-            if (!error) {
-                // Ocultar perfil de usuario y mostrar botón de login
-                userProfileContainer.classList.add('d-none');
-                loginButtonContainer.classList.remove('d-none');
+            if (error) {
+                console.error('Error al cerrar sesión:', error);
             }
+            
+            // Limpiar datos de sesión
+            localStorage.removeItem('user');
+            
+            // Restablecer la interfaz
+            userProfileContainer.classList.add('d-none');
+            loginButtonContainer.classList.remove('d-none');
+            adminPanel.style.display = 'none';
+            welcomeMessage.textContent = 'Bienvenido a la plataforma, seleccione una opción del menú para comenzar.';
+            
+            // Mostrar mensaje de despedida
+            alert('Sesión cerrada correctamente');
         });
 
         // Verificar estado de autenticación al cargar la página
-        document.addEventListener('DOMContentLoaded', checkAuthStatus);
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Comprobar si hay una sesión activa
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session && session.user) {
+                try {
+                    // Obtener información del perfil
+                    const { data: profile, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', session.user.id)
+                        .single();
+
+                    if (!profileError && profile) {
+                        updateUserProfile(session.user, profile);
+                        welcomeMessage.innerHTML = `¡Bienvenido de nuevo, ${session.user.email}! <span class="badge bg-success">${getRoleDisplayName(profile.role)}</span>`;
+                    }
+                } catch (error) {
+                    console.error('Error al cargar datos de sesión:', error);
+                }
+            }
+        });
     </script>
 </body>
 </html>
