@@ -1,325 +1,164 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Plataforma de Seguimiento - Daule</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; }
-        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .hero-section { background: linear-gradient(90deg,#198754,#157347); color:white; padding:30px; border-radius:8px; }
-        .card { border:none; border-radius:12px; }
-        .user-avatar { width:32px;height:32px;border-radius:50%;background:#fff;color:#198754;display:flex;align-items:center;justify-content:center;margin-right:8px;font-weight:bold; }
-        .dropdown-menu { right: 0; left: auto; }
-        .editing { outline: 3px dashed rgba(0,0,0,0.12); }
-        #saveStatus { font-size:0.9rem; display:inline-block; margin-left:10px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestión de Residuos Sólidos — Editor Pro</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.3/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #2e7d32;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    .editor-container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .toolbar button {
+      background: #2e7d32;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .toolbar button:hover {
+      background: #1b5e20;
+    }
+    #editor {
+      min-height: 200px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .auth-section {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 15px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .hidden { display: none; }
+  </style>
 </head>
-
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-success">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#"><i class="fas fa-chart-bar"></i> Indicadores Daule</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+  <header>
+    <h1>Gestión de Residuos Sólidos — Editor Pro</h1>
+  </header>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto align-items-center">
-        <li class="nav-item" id="loginButtonContainer">
-          <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="fas fa-user-circle"></i> Acceder</a>
-        </li>
-
-        <li class="nav-item dropdown d-none" id="userProfileContainer">
-          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <div class="user-avatar" id="userAvatar">U</div>
-            <span id="userName">Usuario</span>
-          </a>
-          <ul class="dropdown-menu">
-            <li class="px-3 py-2">Rol: <strong id="userRoleDisplay"></strong></li>
-            <li><hr class="dropdown-divider"></li>
-            <li class="px-3 py-2 d-none" id="editToggleContainer">
-              <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="editToggle">
-                <label class="form-check-label" for="editToggle">Modo edición</label>
-                <span id="saveStatus"></span>
-              </div>
-            </li>
-            <li><a class="dropdown-item" href="#" id="logoutButton">Cerrar sesión</a></li>
-          </ul>
-        </li>
-      </ul>
-    </div>
+  <!-- Sección de Autenticación -->
+  <div class="auth-section" id="authSection">
+    <h3>Iniciar Sesión</h3>
+    <input type="email" id="email" placeholder="Correo electrónico" required>
+    <input type="password" id="password" placeholder="Contraseña" required>
+    <button onclick="login()">Ingresar</button>
+    <button onclick="register()">Registrarse</button>
   </div>
-</nav>
 
-<!-- Contenido editable -->
-<div class="container mt-4">
-  <div id="editableContent">
-    <div class="hero-section mb-4">
-      <h2 class="display-5">Panel de Indicadores</h2>
-      <p class="lead">Bienvenido a la plataforma, seleccione una opción del menú para comenzar.</p>
+  <!-- Editor -->
+  <div class="editor-container hidden" id="editorContainer">
+    <div class="toolbar">
+      <button onclick="document.execCommand('bold')"><i class="fa-solid fa-bold"></i></button>
+      <button onclick="document.execCommand('italic')"><i class="fa-solid fa-italic"></i></button>
+      <button onclick="document.execCommand('underline')"><i class="fa-solid fa-underline"></i></button>
+      <button onclick="saveContent()">💾 Guardar</button>
+      <button onclick="logout()">🚪 Cerrar Sesión</button>
     </div>
-
-    <div class="row g-4" id="cardsContainer">
-      <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3">
-          <div class="card-body">
-            <i class="fas fa-bullseye card-icon"></i>
-            <h5 class="card-title">Metas</h5>
-            <p class="card-text">Gestionar metas del proyecto.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card text-white bg-info mb-3">
-          <div class="card-body">
-            <i class="fas fa-chart-line card-icon"></i>
-            <h5 class="card-title">Indicadores</h5>
-            <p class="card-text">Visualizar y editar indicadores.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
-          <div class="card-body">
-            <i class="fas fa-signal card-icon"></i>
-            <h5 class="card-title">Avances</h5>
-            <p class="card-text">Registrar progreso por indicador.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-          <div class="card-body">
-            <i class="fas fa-file-alt card-icon"></i>
-            <h5 class="card-title">Reportes</h5>
-            <p class="card-text">Generar reportes automáticos.</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div id="editor" contenteditable="true"></div>
   </div>
-</div>
 
-<!-- Login Modal -->
-<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Acceso de Usuario</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <form id="loginForm">
-          <div class="mb-3"><label class="form-label">Usuario (Correo)</label><input id="email" type="email" class="form-control" required></div>
-          <div class="mb-3"><label class="form-label">Contraseña</label><input id="password" type="password" class="form-control" required></div>
-          <div class="d-grid gap-2"><button class="btn btn-success" type="submit">Entrar</button></div>
-          <div id="error-message" class="alert alert-danger mt-3 d-none"></div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
+  <!-- Importar Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Variables de entorno (Vercel/GitHub Pages → Configuración → Environment Variables)
+    const SUPABASE_URL = window.__env?.SUPABASE_URL || "";
+    const SUPABASE_KEY = window.__env?.SUPABASE_KEY || "";
 
-<!-- Librerías -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Supabase v2 CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
-<script>
-/* ---------- CONFIG: sustituye por tus valores (no los dejes en el repo) ---------- */
-const SUPABASE_URL = 'TU_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'TU_SUPABASE_ANON_KEY';
-/* --------------------------------------------------------------------------------- */
-
-/* Inicializar cliente Supabase */
-const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-/* Elementos DOM */
-const loginForm = document.getElementById('loginForm');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const errorMessageDiv = document.getElementById('error-message');
-const loginButtonContainer = document.getElementById('loginButtonContainer');
-const userProfileContainer = document.getElementById('userProfileContainer');
-const userAvatar = document.getElementById('userAvatar');
-const userName = document.getElementById('userName');
-const userRoleDisplay = document.getElementById('userRoleDisplay');
-const logoutButton = document.getElementById('logoutButton');
-const editToggleContainer = document.getElementById('editToggleContainer');
-const editToggle = document.getElementById('editToggle');
-const saveStatus = document.getElementById('saveStatus');
-const editableContent = document.getElementById('editableContent');
-
-let currentProfile = null;
-const PAGE_SLUG = 'home'; // slug para la página principal
-
-/* --- Manejo de sesión y estado de autenticación --- */
-async function checkAuthStatus() {
-  const { data } = await supabase.auth.getSession();
-  const session = data.session;
-  if (session?.user) {
-    await updateUserProfile(session.user);
-  } else {
-    // mostrar login si no hay sesión
-    loginButtonContainer.classList.remove('d-none');
-    userProfileContainer.classList.add('d-none');
-  }
-}
-
-/* Escuchar cambios de auth (login/logout desde otras pestañas) */
-supabase.auth.onAuthStateChange((event, session) => {
-  if (session?.user) updateUserProfile(session.user);
-  else {
-    currentProfile = null;
-    loginButtonContainer.classList.remove('d-none');
-    userProfileContainer.classList.add('d-none');
-  }
-});
-
-/* Actualiza UI con el perfil (y añade modo edición si aplica) */
-async function updateUserProfile(user) {
-  try {
-    // obtener perfil
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('id,email,role')
-      .eq('id', user.id)
-      .single();
-
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error al obtener perfil:', error);
-      // mostrar aunque sea correo
-      userRoleDisplay.textContent = '(sin perfil)';
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+      console.error("❌ Error: Faltan variables de entorno SUPABASE_URL o SUPABASE_KEY");
     }
 
-    currentProfile = profile || null;
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // UI
-    loginButtonContainer.classList.add('d-none');
-    userProfileContainer.classList.remove('d-none');
+    const authSection = document.getElementById("authSection");
+    const editorContainer = document.getElementById("editorContainer");
+    const editor = document.getElementById("editor");
 
-    userAvatar.textContent = (user.email || 'U').charAt(0).toUpperCase();
-    userName.textContent = user.email;
-    userRoleDisplay.textContent = profile ? profile.role : 'Usuario';
-
-    // mostrar Toggle de edición si es admin o tecnico
-    if (profile && (profile.role === 'admin' || profile.role === 'tecnico')) {
-      editToggleContainer.classList.remove('d-none');
-    } else {
-      editToggleContainer.classList.add('d-none');
+    async function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return alert("⚠️ Error: " + error.message);
+      authSection.classList.add("hidden");
+      editorContainer.classList.remove("hidden");
+      loadContent();
     }
-  } catch (err) {
-    console.error('Error updateUserProfile:', err);
-  }
-}
 
-/* --- Login --- */
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  errorMessageDiv.classList.add('d-none');
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
+    async function register() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) return alert("⚠️ Error: " + error.message);
+      alert("✅ Registro exitoso. Revisa tu correo para confirmar la cuenta.");
+    }
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    async function logout() {
+      await supabase.auth.signOut();
+      authSection.classList.remove("hidden");
+      editorContainer.classList.add("hidden");
+    }
 
-  if (error) {
-    errorMessageDiv.textContent = 'Error de inicio de sesión: ' + error.message;
-    errorMessageDiv.classList.remove('d-none');
-  } else {
-    // cerrar modal
-    const modalEl = document.getElementById('loginModal');
-    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-    modal.hide();
-
-    // update UI
-    if (data.user) await updateUserProfile(data.user);
-  }
-});
-
-/* --- Logout --- */
-logoutButton.addEventListener('click', async () => {
-  const { error } = await supabase.auth.signOut();
-  if (!error) {
-    loginButtonContainer.classList.remove('d-none');
-    userProfileContainer.classList.add('d-none');
-    // desactivar edición si alguien la dejó activa
-    if (editToggle.checked) editToggle.checked = false;
-    setEditable(false);
-  } else {
-    console.error('Error al cerrar sesión:', error);
-  }
-});
-
-/* --- Funciones de edición y guardado --- */
-function setEditable(isEditable) {
-  if (isEditable) {
-    editableContent.contentEditable = 'true';
-    editableContent.classList.add('editing');
-    saveStatus.textContent = 'Modo edición activo (recuerda desactivar para guardar)';
-  } else {
-    editableContent.contentEditable = 'false';
-    editableContent.classList.remove('editing');
-    saveStatus.textContent = '';
-  }
-}
-
-/* Cuando el usuario desactiva el modo edición: guardar cambios */
-editToggle?.addEventListener('change', async (e) => {
-  const on = e.target.checked;
-  setEditable(on);
-
-  if (!on) {
-    // Guardar contenido en la tabla 'pages' (upsert)
-    try {
-      saveStatus.textContent = 'Guardando...';
-      const htmlContent = editableContent.innerHTML;
-
+    async function saveContent() {
+      const content = editor.innerHTML;
       const { data, error } = await supabase
-        .from('pages')
-        .upsert({ slug: PAGE_SLUG, content: htmlContent, updated_at: new Date().toISOString() }, { onConflict: 'slug' });
+        .from("documents")
+        .upsert([{ id: 1, content }]); // Usa `id:1` como documento único
+      if (error) return alert("⚠️ Error guardando: " + error.message);
+      alert("✅ Guardado en Supabase");
+    }
 
-      if (error) {
-        console.error('Error guardando página:', error);
-        saveStatus.textContent = 'Error al guardar';
-        setTimeout(()=> saveStatus.textContent = '', 3000);
-      } else {
-        saveStatus.textContent = 'Cambios guardados';
-        setTimeout(()=> saveStatus.textContent = '', 3000);
+    async function loadContent() {
+      const { data, error } = await supabase
+        .from("documents")
+        .select("content")
+        .eq("id", 1)
+        .single();
+      if (!error && data) editor.innerHTML = data.content;
+    }
+
+    // Verifica si ya hay sesión activa
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        authSection.classList.add("hidden");
+        editorContainer.classList.remove("hidden");
+        loadContent();
       }
-    } catch (err) {
-      console.error('Excepción guardando:', err);
-      saveStatus.textContent = 'Error al guardar';
-      setTimeout(()=> saveStatus.textContent = '', 3000);
-    }
-  }
-});
-
-/* --- Cargar contenido persistente de 'pages' --- */
-async function loadPageContent() {
-  try {
-    const { data, error } = await supabase
-      .from('pages')
-      .select('content')
-      .eq('slug', PAGE_SLUG)
-      .single();
-
-    if (!error && data && data.content) {
-      editableContent.innerHTML = data.content;
-    }
-  } catch (err) {
-    console.error('Error cargando contenido de página:', err);
-  }
-}
-
-/* Inicialización al cargar */
-document.addEventListener('DOMContentLoaded', async () => {
-  await checkAuthStatus();
-  await loadPageContent();
-});
-</script>
+    });
+  </script>
 </body>
 </html>
