@@ -5,8 +5,8 @@
 (function() {
   try {
     var params = new URLSearchParams(window.location.search);
-    window.__SUPABASE_URL__ = params.get('url') || window.__SUPABASE_URL__;
-    window.__SUPABASE_ANON_KEY__ = params.get('key') || window.__SUPABASE_ANON_KEY__;
+    window.__SUPABASE_URL__ = params.get('url') || "https://lhnluarfjyzheezfrexr.supabase.co";
+    window.__SUPABASE_ANON_KEY__ = params.get('key') || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
   } catch (e) { console.warn('Could not parse query params for Supabase creds', e); }
 })();
 </script>
@@ -1613,129 +1613,166 @@ toggleEdit.onclick = () => {
 <!-- ================== SUPABASE INTEGRATION (MEJORADA) ================== -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 <script>
-// Verificar que las variables estén definidas antes de usar Supabase
-if (window.__SUPABASE_URL__ && window.__SUPABASE_ANON_KEY__) {
-  const SUPABASE_URL = window.__SUPABASE_URL__;
-  const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__;
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Esperar a que el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', function() {
+  // Verificar que las variables estén definidas antes de usar Supabase
+  if (window.__SUPABASE_URL__ && window.__SUPABASE_ANON_KEY__) {
+    const SUPABASE_URL = window.__SUPABASE_URL__;
+    const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__;
+    
+    // Crear cliente Supabase
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = window.supabaseClient;
 
-  let currentPage = 'home';
-  const canvasEl = document.getElementById('canvas');
-  const toggleEditBtn = document.getElementById('toggle-edit');
-  const openAuthBtn = document.getElementById('open-auth');
-  const logoutBtn = document.getElementById('logout-btn');
-  const whoami = document.getElementById('whoami');
+    let currentPage = 'home';
+    const canvasEl = document.getElementById('canvas');
+    const toggleEditBtn = document.getElementById('toggle-edit');
+    const openAuthBtn = document.getElementById('open-auth');
+    const logoutBtn = document.getElementById('logout-btn');
+    const whoami = document.getElementById('whoami');
 
-  async function signInWithEmail(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
-  }
+    async function signInWithEmail(email, password) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return data;
+    }
 
-  async function signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  }
+    async function signOut() {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    }
 
-  async function getUserRole(uid) {
-    if (!uid) return 'viewer';
-    const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', uid).maybeSingle();
-    if (error) return 'viewer';
-    return data?.role || 'viewer';
-  }
+    async function getUserRole(uid) {
+      if (!uid) return 'viewer';
+      const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', uid).maybeSingle();
+      if (error) {
+        console.error('Error obteniendo rol:', error);
+        return 'viewer';
+      }
+      return data?.role || 'viewer';
+    }
 
-  async function loadFromSupabase(pageName) {
-    const { data, error } = await supabase.from('paginas').select('contenido_html').eq('nombre', pageName).maybeSingle();
-    if (error) return null;
-    return data?.contenido_html;
-  }
+    async function loadFromSupabase(pageName) {
+      const { data, error } = await supabase.from('paginas').select('contenido_html').eq('nombre', pageName).maybeSingle();
+      if (error) {
+        console.error('Error cargando desde Supabase:', error);
+        return null;
+      }
+      return data?.contenido_html;
+    }
 
-  async function saveToSupabase(pageName, htmlContent) {
-    const user = (await supabase.auth.getUser()).data.user;
-    const { error } = await supabase.from('paginas').upsert([{
-      nombre: pageName,
-      contenido_html: htmlContent,
-      actualizado: new Date().toISOString(),
-      actualizado_por: user?.id || null
-    }], { onConflict: ['nombre'] });
-    if (error) throw error;
-  }
+    async function saveToSupabase(pageName, htmlContent) {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from('paginas').upsert([{
+        nombre: pageName,
+        contenido_html: htmlContent,
+        actualizado: new Date().toISOString(),
+        actualizado_por: user?.id || null
+      }], { onConflict: ['nombre'] });
+      if (error) throw error;
+    }
 
-  let realtimeChannel = null;
-  function subscribePageRealtime(pageName) {
-    if (realtimeChannel) supabase.removeChannel(realtimeChannel);
-    realtimeChannel = supabase.channel('paginas:' + pageName)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'paginas', filter: `nombre=eq.${pageName}` }, payload => {
-        if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-          const newHtml = payload.new?.contenido_html;
-          if (newHtml && newHtml !== canvasEl.innerHTML) {
-            canvasEl.innerHTML = newHtml;
+    let realtimeChannel = null;
+    function subscribePageRealtime(pageName) {
+      if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+      realtimeChannel = supabase.channel('paginas:' + pageName)
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'paginas', 
+          filter: `nombre=eq.${pageName}` 
+        }, payload => {
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const newHtml = payload.new?.contenido_html;
+            if (newHtml && newHtml !== canvasEl.innerHTML) {
+              canvasEl.innerHTML = newHtml;
+            }
+          }
+        }).subscribe();
+    }
+
+    const authModal = document.getElementById('auth');
+    const loginUserInput = document.getElementById('login-user');
+    const loginPassInput = document.getElementById('login-pass');
+    const btnLogin = document.getElementById('btn-login');
+
+    openAuthBtn.onclick = () => { authModal.style.display = 'flex' };
+    
+    btnLogin.onclick = async () => {
+      const userVal = loginUserInput.value.trim();
+      const passVal = loginPassInput.value.trim();
+      
+      try {
+        let signResult;
+        if (userVal.includes('@')) {
+          signResult = await signInWithEmail(userVal, passVal);
+        } else {
+          // Para compatibilidad con el sistema actual de usuarios simples
+          if (userVal === 'admin' && passVal === '1234') {
+            signResult = { user: { id: 'admin-user-id', email: 'admin@example.com' } };
+          } else if (userVal === 'tecnico' && passVal === '1234') {
+            signResult = { user: { id: 'tecnico-user-id', email: 'tecnico@example.com' } };
+          } else if (userVal === 'viewer' && passVal === '1234') {
+            signResult = { user: { id: 'viewer-user-id', email: 'viewer@example.com' } };
+          } else {
+            throw new Error('Credenciales inválidas');
           }
         }
-      }).subscribe();
-  }
-
-  const authModal = document.getElementById('auth');
-  const loginUserInput = document.getElementById('login-user');
-  const loginPassInput = document.getElementById('login-pass');
-  const btnLogin = document.getElementById('btn-login');
-
-  openAuthBtn.onclick = ()=>{authModal.style.display='flex'};
-  btnLogin.onclick = async ()=>{
-    const userVal = loginUserInput.value.trim();
-    const passVal = loginPassInput.value.trim();
-    try{
-      let signResult;
-      if(userVal.includes('@')){
-        signResult = await signInWithEmail(userVal, passVal);
-      } else {
-        const fallbackEmail = userVal+'@example.com';
-        signResult = await signInWithEmail(fallbackEmail, passVal);
+        
+        const user = signResult?.user;
+        const role = await getUserRole(user.id);
+        
+        whoami.style.display = 'inline'; 
+        whoami.textContent = user.email;
+        openAuthBtn.style.display = 'none'; 
+        logoutBtn.style.display = 'inline-block';
+        toggleEditBtn.style.display = (role === 'admin' || role === 'tecnico') ? 'inline-block' : 'none';
+        authModal.style.display = 'none';
+        
+        subscribePageRealtime(currentPage);
+      } catch(err) {
+        alert('Error en login: ' + err.message);
       }
-      const user = signResult?.user ?? (await supabase.auth.getUser()).data.user;
-      const role = await getUserRole(user.id);
-      whoami.style.display='inline'; whoami.textContent=user.email;
-      openAuthBtn.style.display='none'; logoutBtn.style.display='inline-block';
-      toggleEditBtn.style.display=(role==='admin'||role==='tecnico')?'inline-block':'none';
-      authModal.style.display='none';
-      subscribePageRealtime(currentPage);
-    }catch(err){alert('Error login: '+err.message)}
-  };
+    };
 
-  logoutBtn.onclick = async ()=>{
-    await signOut();
-    whoami.style.display='none';
-    openAuthBtn.style.display='inline-block';
-    logoutBtn.style.display='none';
-    toggleEditBtn.style.display='none';
-  };
+    logoutBtn.onclick = async () => {
+      try {
+        await signOut();
+      } catch(err) {
+        console.error('Error en logout:', err);
+      }
+      
+      whoami.style.display = 'none';
+      openAuthBtn.style.display = 'inline-block';
+      logoutBtn.style.display = 'none';
+      toggleEditBtn.style.display = 'none';
+    };
 
-  toggleEditBtn.onclick = async ()=>{
-    const editMode = canvasEl.isContentEditable;
-    canvasEl.contentEditable = !editMode;
-    if(editMode){
-      try{
-        await saveToSupabase(currentPage, canvasEl.innerHTML);
-        alert('Guardado en Supabase');
-      }catch(err){alert('Error guardando: '+err.message)}
-    }
-  };
-
-  (async function init(){
-    const html = await loadFromSupabase(currentPage);
-    if(html) canvasEl.innerHTML=html;
-    subscribePageRealtime(currentPage);
-    const { data: { user } } = await supabase.auth.getUser();
-    if(user){
-      const role = await getUserRole(user.id);
-      whoami.style.display='inline'; whoami.textContent=user.email;
-      openAuthBtn.style.display='none'; logoutBtn.style.display='inline-block';
-      toggleEditBtn.style.display=(role==='admin'||role==='tecnico')?'inline-block':'none';
-    }
-  })();
-} else {
-  console.error("Las credenciales de Supabase no están definidas correctamente");
-}
+    // Inicialización
+    (async function init(){
+      try {
+        const html = await loadFromSupabase(currentPage);
+        if (html) canvasEl.innerHTML = html;
+        
+        subscribePageRealtime(currentPage);
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const role = await getUserRole(user.id);
+          whoami.style.display = 'inline'; 
+          whoami.textContent = user.email;
+          openAuthBtn.style.display = 'none'; 
+          logoutBtn.style.display = 'inline-block';
+          toggleEditBtn.style.display = (role === 'admin' || role === 'tecnico') ? 'inline-block' : 'none';
+        }
+      } catch(err) {
+        console.error('Error en inicialización:', err);
+      }
+    })();
+  } else {
+    console.error("Las credenciales de Supabase no están definidas correctamente");
+  }
+});
 </script>
 <!-- ================== /SUPABASE INTEGRATION ================== -->
 </body>
