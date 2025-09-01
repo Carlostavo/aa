@@ -1,0 +1,3 @@
+html, body, #__next { height: 100%; margin: 0; }
+.iframeWrap { position: fixed; inset: 0; display: grid; }
+.iframeWrap iframe { width: 100%; height: 100%; border: 0; }

@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="es">
+\1
+
+<script>
+(function() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    window.__SUPABASE_URL__ = params.get('url') || window.__SUPABASE_URL__;
+    window.__SUPABASE_ANON_KEY__ = params.get('key') || window.__SUPABASE_ANON_KEY__;
+  } catch (e) { console.warn('Could not parse query params for Supabase creds', e); }
+})();
+</script>
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gestión de Residuos Sólidos — Editor Pro</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.3/css/all.min.css">
+<style>
+  :root{
+    --primary:#2e7d32;
+    --primary-600:#1b5e20;
+    --secondary:#0288d1;
+    --accent:#fbc02d;
+    --danger:#d32f2f;
+    --bg:#f4f7f9;
+    --surface:#ffffff;
+    --ink:#2d3748;
+    --muted:#718096;
+    --border:#e2e8f0;
+    --grid:#e6f3ea;
+    --shadow:0 8px 30px rgba(16,24,40,0.08);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+  /* Topbar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;background:var(--surface);box-shadow:var(--shadow);position:sticky;top:0;z-index:30}
+  .brand{display:flex;gap:10px;align-items:center;font-weight:700;color:var(--primary)}
+  .brand i{background:linear-gradient(135deg,var(--primary),#3fa34b);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .nav{display:flex;align-items:center;gap:14px}
+  .nav a{color:var(--muted);text-decoration:none;font-weight:600;padding:8px 10px;border-radius:10px}
+  .nav a.active{color:var(--primary);background:#e8f4ec}
+  .nav a.disabled{pointer-events:none;opacity:.45}
+  .nav a.active-link { color: var(--primary); background: #e8f4ec; }
+
+  /* Login button */
+  #open-auth{border:none;padding:10px 16px;border-radius:999px;color:#fff;background:linear-gradient(135deg,var(--secondary),#00a6c7);box-shadow:0 6px 20px rgba(2,136,209,.25);font-weight:700;cursor:pointer;transition:.25s}
+  #open-auth:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(2,136,209,.35)}
+  
+  /* Logout button */
+  #logout-btn{display:none;border:none;padding:10px 16px;border-radius:999px;color:#fff;background:var(--danger);font-weight:700;cursor:pointer;transition:.25s}
+  #logout-btn:hover{background:#b71c1c}
+
+  /* Edit toggle */
+  #toggle-edit{display:none;border:none;padding:10px 14px;border-radius:12px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer}
+  #toggle-edit.active{background:var(--primary-600)}
+
+  /* Layout */
+  .wrap{display:grid;grid-template-columns:1fr;gap:18px;align-items:start;padding:18px;min-height: calc(100vh - 86px)}
+  .wrap.edit-active{grid-template-columns:320px 1fr;}
+  .sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;display:none;position:sticky;top:86px;overflow:auto}
+  .sidebar.active{display:block}
+  .panel h3{margin:10px 0 8px;font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row{display:flex;gap:8px}
+  .panel .field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+  .panel label{font-size:12px;color:#667085}
+  .panel input,.panel select,.panel textarea, .panel button{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px}
+  .panel button.action{background:#0ea5e9;border:none;color:#fff;font-weight:700;cursor:pointer}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+  .tab{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#f8fafc;font-size:12px;cursor:pointer}
+  .tab.active{background:#e8f4ec;border-color:#b7dec2;color:#1f7a34}
+  .section{display:none}
+  .section.active{display:block}
+
+  /* Canvas */
+  .canvas-wrap{position:relative;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:0;overflow:hidden;flex-grow:1;display:flex;flex-direction:column}
+  .canvas-toolbar{display:none; align-items:center;gap:8px;padding:10px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .canvas-toolbar.active{display:flex;}
+  .canvas-toolbar .label{display:none;}
+  .canvas-toolbar .buttons{display:none;}
+  .canvas-toolbar.active .label, .canvas-toolbar.active .buttons{display:block;}
+
+  .canvas{
+    position:relative;
+    background-size:20px 20px;
+    overflow: hidden; 
+    padding:20px;
+    height: auto;
+    min-height: calc(100vh - 120px);
+  }
+
+  .canvas.editing {
+    background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    border: 1px dashed #d7e7dc;
+  }
+  
+  .canvas-item{position:absolute;min-width:80px;min-height:40px;outline:none;}
+  .canvas-item:not(.is-editing) .selectable {cursor: move;}
+  .selectable{cursor:move}
+  .selected{outline:2px solid #22c55e;box-shadow:0 8px 24px rgba(15,118,110,.18);z-index: 20;}
+  .handle{position:absolute;width:10px;height:10px;border-radius:2px;background:#22c55e;border:1px solid #0f766e}
+  .handle.n{top:-6px;left:50%;transform:translateX(-50%);cursor:n-resize}
+  .handle.s{bottom:-6px;left:50%;transform:translateX(-50%);cursor:s-resize}
+  .handle.e{right:-6px;top:50%;transform:translateY(-50%);cursor:e-resize}
+  .handle.w{left:-6px;top:50%;transform:translateY(-50%);cursor:w-resize}
+  .handle.nw{left:-6px;top:-6px;cursor:nw-resize}
+  .handle.ne{right:-6px;top:-6px;cursor:ne-resize}
+  .handle.sw{left:-6px;bottom:-6px;cursor:sw-resize}
+  .handle.se{right:-6px;bottom:-6px;cursor:se-resize}
+  .handle.rotate{top:-28px;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:#0ea5e9;border:2px solid #0369a1;cursor:grab}
+
+  /* Floating tools for selected */
+  .floatbar{
+    position:absolute;
+    display:none;
+    background:var(--primary);
+    color:#fff;
+    padding: 2px;
+    border-radius: 8px;
+    font-size:12px;
+    z-index:30;
+    top: -42px;
+    white-space: nowrap;
+    box-shadow: var(--shadow);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .floatbar button{
+    background:transparent;
+    border:none;
+    color:#fff;
+    cursor:pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+  }
+  .floatbar button:hover {
+    background-color: var(--primary-600);
+  }
+  .floatbar button i {
+    color: #fff;
+    font-size: 14px;
+  }
+  .floatbar button span {
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .selected .floatbar {
+    display: flex;
+  }
+  
+  /* Content sections */
+  .content-section { display: none; }
+  .content-section.active { display: block; }
+  
+  /* Home section */
+  .home{padding:0}
+  
+  /* Hero section - Updated */
+  .hero{
+    padding: 60px 28px;
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border);
+    background-image: url('data:image/svg+xml,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M100 0L50 50L100 100V0ZM0 100L50 50L0 0V100Z" fill="%23e8f4ec" opacity=".5"%3E%3C/path%3E%3C/svg%3E'),
+                    linear-gradient(135deg, #e8f5e9, #f1f8e9);
+    background-size: 200px, cover;
+  }
+  .hero h1{margin:0;color:var(--primary);font-size:2.8rem;line-height:1.2; max-width: 800px;}
+  .hero p{margin:0;color:#48576a;font-size:1.2rem; max-width: 700px;}
+  .hero-button {
+    background: var(--primary);
+    color: #fff;
+    padding: 14px 28px;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    margin-top: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .hero-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(46,125,50,0.25);
+  }
+  
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-top:36px}
+  .card{
+    padding:24px;
+    border-radius:20px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction: column;
+    gap:18px;
+    align-items:flex-start;
+    transition:transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .card:hover{transform:translateY(-5px);box-shadow:0 12px 20px rgba(0,0,0,0.1)}
+  .card-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-icon i{font-size:24px; color: #fff;}
+  .card.metas .card-icon { background: #38a169; }
+  .card.indicadores .card-icon { background: #4299e1; }
+  .card.avances .card-icon { background: #ecc94b; }
+  .card.reportes .card-icon { background: #e53e3e; }
+  .card.formularios .card-icon { background: #673ab7; }
+
+  .card-content{display:flex;flex-direction:column;gap:6px;}
+  .card-title{font-weight:700;font-size:1.2rem; margin: 0;}
+  .card-desc{font-size:1rem;color:var(--muted); margin: 0;}
+
+  /* New style for disabled cards */
+  .card.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f1f5f9;
+  }
+  .card.disabled:hover {
+    transform: none;
+    box-shadow: var(--shadow);
+  }
+
+  /* Auth modal */
+  .modal{position:fixed;inset:0;background:rgba(2,6,23,.55);display:none;align-items:center;justify-content:center;z-index:50}
+  .sheet{background:var(--surface);width:360px;max-width:92vw;border-radius:18px;box-shadow:var(--shadow);overflow:hidden;padding:24px;}
+  .sheet h2{text-align:center;margin:0 0 20px;color:var(--ink);font-size:22px;}
+  .sheet-body{display:flex;flex-direction:column;gap:12px;}
+  .sheet-body label{color:var(--muted); font-size: 0.9rem;}
+  .sheet-body input, .sheet-body select{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;font-size:14px;}
+  .sheet-body .submit{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),#3fa34b);color:#fff;font-weight:800;cursor:pointer;transition:.2s all;}
+  .sheet-body .submit:hover{transform:translateY(-1px);box-shadow:0 6px 12px rgba(46,125,50,0.25);}
+  .sheet-body .close-modal{width:100%;padding:14px;border:1px solid var(--border);border-radius:12px;background:transparent;color:var(--muted);font-weight:800;cursor:pointer;transition:.2s all;}
+  .sheet-body .close-modal:hover{background:#f1f5f9;border-color:#cbd5e1;}
+  .close-x{position:absolute;top:10px;right:14px;background:transparent;border:none;font-size:18px;color:#334155;cursor:pointer}
+
+  /* Canvas items styling */
+  .canvas-h2 {font-size: 1.8rem; color: var(--primary); margin: 0; padding: 10px; background: rgba(255,255,255,0.9); border-radius: 10px; border: 1px solid var(--border);}
+  .canvas-p {font-size: 1rem; color: var(--ink); margin: 0; padding: 10px; background: rgba(255,255,255,0.9); border-radius: 10px; border: 1px solid var(--border); line-height: 1.5;}
+  .canvas-img {border-radius: 10px; box-shadow: var(--shadow); width: 100%; height: 100%; object-fit: cover;}
+  .canvas-button {display: inline-block; padding: 12px 20px; border-radius: 12px; background: var(--secondary); color: #fff; font-weight: 700; text-decoration: none; text-align: center; box-shadow: 0 4px 6px rgba(2,136,209,.2); transition: all 0.2s;}
+  .canvas-button:hover {background: #0277bd; transform: translateY(-2px); box-shadow: 6px 12px rgba(2,136,209,.3);}
+  .canvas-table { width: 100%; height: 100%; border-collapse: collapse; }
+  .canvas-table th, .canvas-table td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+  .canvas-table td { background-color: white; }
+
+  /* New file input style */
+  #upload-image-label {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    background: #0ea5e9;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s;
+  }
+  #upload-image-label:hover {
+    background: #0369a1;
+  }
+  #image-upload {
+    display: none;
+  }
+
+  /* Make sure all children can be interacted with */
+  .canvas-item > *, .hero > *, .card > * {
+    pointer-events: all;
+  }
+
+  /* Added for styling of editable content */
+  [contenteditable="true"] {
+      outline: 2px dashed var(--secondary);
+      outline-offset: 4px;
+      padding: 2px;
+  }
+
+
+/* ================= RESPONSIVE DESIGN ================= */
+@media (max-width: 768px) {
+  /* Topbar */
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .nav {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Sidebar -> se vuelve un panel inferior */
+  .wrap.edit-active {
+    grid-template-columns: 1fr; /* en móvil no mostrar 2 columnas */
+  }
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50vh;
+    z-index: 100;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -6px 20px rgba(0,0,0,0.2);
+  }
+
+  /* Hero */
+  .hero {
+    padding: 30px 16px;
+  }
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+  .hero p {
+    font-size: 1rem;
+  }
+
+  /* Cards -> 1 por fila */
+  .cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Canvas */
+  .canvas {
+    padding: 10px;
+    min-height: 60vh;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><i class="fa-solid fa-recycle fa-xl"></i> Gestión RS</div>
+  <nav class="nav">
+    <a href="#" class="nav-link active" data-page="home">Inicio</a>
+    <a href="#" class="nav-link" data-page="indicadores">Indicadores</a>
+    <a href="#" class="nav-link disabled" data-page="metas">Metas</a>
+    <a href="#" class="nav-link disabled" data-page="avances">Avances</a>
+    <a href="#" class="nav-link disabled" data-page="reportes">Reportes</a>
+    <a href="#" class="nav-link" data-page="formularios">Formularios</a>
+    <button id="toggle-edit"><i class="fa-solid fa-pen-to-square"></i> Modo edición</button>
+    <button id="open-auth"><i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
+    <button id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
+    <span id="whoami" style="font-weight:700;display:none"></span>
+  </nav>
+</header>
+
+<main class="wrap" id="main-wrap">
+  <aside class="sidebar" id="sidebar">
+    <div class="panel">
+      <h3>Insertar</h3>
+      <div class="grid-2">
+        <button class="action" data-insert="h2"><i class="fa-solid fa-heading"></i> Título</button>
+        <button class="action" data-insert="p"><i class="fa-solid fa-font"></i> Texto</button>
+        <button class="action" data-insert="img"><i class="fa-regular fa-image"></i> Imagen</button>
+        <button class="action" data-insert="button"><i class="fa-solid fa-square"></i> Botón</button>
+        <button class="action" data-insert="iframe"><i class="fa-solid fa-video"></i> Video</button>
+        <button class="action" data-insert="table"><i class="fa-solid fa-table"></i> Tabla</button>
+      </div>
+
+      <h3>Historial</h3>
+      <div class="row">
+        <button class="action" id="undo"><i class="fa-solid fa-rotate-left"></i> Deshacer</button>
+        <button class="action" id="redo"><i class="fa-solid fa-rotate-right"></i> Rehacer</button>
+      </div>
+
+      <h3>Propiedades</h3>
+      <div class="tabs" id="prop-tabs">
+        <button class="tab active" data-tab="general">General</button>
+        <button class="tab" data-tab="texto">Texto</button>
+        <button class="tab" data-tab="imagen">Imagen</button>
+        <button class="tab" data-tab="video">Video</button>
+        <button class="tab" data-tab="boton">Botón</button>
+        <button class="tab" data-tab="tabla">Tabla</button>
+        <button class="tab" data-tab="lienzo">Lienzo</button>
+      </div>
+
+      <section class="section active" id="sec-general">
+        <div class="grid-2">
+          <div class="field"><label>X</label><input type="number" id="gen-x"></div>
+          <div class="field"><label>Y</label><input type="number" id="gen-y"></div>
+          <div class="field"><label>Ancho</label><input type="number" id="gen-w"></div>
+          <div class="field"><label>Alto</label><input type="number" id="gen-h"></div>
+          <div class="field"><label>Rotación (°)</label><input type="number" id="gen-rot" value="0"></div>
+          <div class="field"><label>Índice Z</label><input type="number" id="gen-z" value="1"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Fondo</label><input type="color" id="gen-bg" value="#ffffff"></div>
+          <div class="field"><label>Color Borde</label><input type="color" id="gen-bc" value="#e2e8f0"></div>
+          <div class="field"><label>Grosor Borde (px)</label><input type="number" id="gen-bw" value="0"></div>
+          <div class="field"><label>Radio (px)</label><input type="number" id="gen-br" value="8"></div>
+          <div class="field"><label>Sombra</label>
+            <select id="gen-shadow">
+              <option value="none">Sin sombra</option>
+              <option value="sm">Suave</option>
+              <option value="md">Media</option>
+              <option value="lg">Fuerte</option>
+            </select>
+          </div>
+          <div class="field"><label>Padding</label><input type="number" id="gen-pad" value="8"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-texto">
+        <div class="field"><label>Contenido</label><textarea id="txt-content" rows="4"></textarea></div>
+        <div class="grid-2">
+          <div class="field"><label>Fuente</label>
+            <select id="txt-font">
+              <option>Inter</option><option>Arial</option><option>Georgia</option>
+              <option>Tahoma</option><option>Verdana</option><option>Times New Roman</option>
+            </select>
+          </div>
+          <div class="field"><label>Tamaño (px)</label><input type="number" id="txt-size" value="18"></div>
+          <div class="field"><label>Color</label><input type="color" id="txt-color" value="#243b53"></div>
+          <div class="field"><label>Alineación</label>
+            <select id="txt-align"><option>left</option><option>center</option><option>right</option><option>justify</option></select>
+          </div>
+        </div>
+        <div class="row">
+          <button class="action" id="txt-bold"><i class="fa-solid fa-bold"></i> Negrita</button>
+          <button class="action" id="txt-italic"><i class="fa-solid fa-italic"></i> Cursiva</button>
+          <button class="action" id="txt-underline"><i class="fa-solid fa-underline"></i> Subrayado</button>
+          <button class="action" id="txt-list"><i class="fa-solid fa-list-ul"></i> Lista</button>
+        </div>
+      </section>
+
+      <section class="section" id="sec-imagen">
+        <div class="field"><label>URL</label><input type="text" id="img-src" placeholder="https://..."></div>
+        <label for="image-upload" id="upload-image-label">Subir desde PC</label>
+        <input type="file" id="image-upload" accept="image/*">
+        <div class="grid-2">
+          <div class="field"><label>Fit</label>
+            <select id="img-fit"><option value="cover">cover</option><option value="contain">contain</option></select>
+          </div>
+          <div class="field"><label>Alt</label><input type="text" id="img-alt"></div>
+          <div class="field"><label>Ancho (px)</label><input type="number" id="img-w"></div>
+          <div class="field"><label>Alto (px)</label><input type="number" id="img-h"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-video">
+        <div class="field"><label>URL (YouTube)</label><input type="text" id="vid-src" placeholder="Pega la URL del video"></div>
+        <input type="file" id="video-upload" style="display:none" accept="video/*">
+        <button class="action" id="upload-btn">Subir desde PC</button>
+        <div class="grid-2">
+          <div class="field"><label>Ancho (px)</label><input type="number" id="vid-w"></div>
+          <div class="field"><label>Alto (px)</label><input type="number" id="vid-h"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-boton">
+        <div class="grid-2">
+          <div class="field"><label>Texto</label><input type="text" id="btn-text"></div>
+          <div class="field"><label>Enlace</label><input type="text" id="btn-href"></div>
+          <div class="field"><label>Fondo</label><input type="color" id="btn-bg" value="#0288d1"></div>
+          <div class="field"><label>Texto</label><input type="color" id="btn-fg" value="#ffffff"></div>
+          <div class="field"><label>Radio (px)</label><input type="number" id="btn-radius" value="12"></div>
+          <div class="field"><label>Padding (px)</label><input type="number" id="btn-pad" value="10"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-tabla">
+        <div class="grid-2">
+          <button class="action" id="tbl-add-row">+ Fila</button>
+          <button class="action" id="tbl-del-row">- Fila</button>
+          <button class="action" id="tbl-add-col">+ Columna</button>
+          <button class="action" id="tbl-del-col">- Columna</button>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Borde color</label><input type="color" id="tbl-bc" value="#94a3b8"></div>
+          <div class="field"><label>Borde (px)</label><input type="number" id="tbl-bw" value="1"></div>
+          <div class="field"><label>Color celdas</label><input type="color" id="tbl-cell" value="#ffffff"></div>
+          <div class="field"><label>Padding celda</label><input type="number" id="tbl-pad" value="8"></div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-lienzo">
+        <div class="grid-2">
+          <div class="field"><label>Grid (px)</label><input type="number" id="canvas-grid" value="20"></div>
+          <div class="field"><label>Snap a grid</label>
+            <select id="canvas-snap"><option value="on">on</option><option value="off">off</select>
+          </div>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <section class="canvas-wrap">
+    <div class="canvas-toolbar" id="canvas-toolbar">
+      <span style="font-weight:800;color:#334155" class="label">Lienzo</span>
+      <div style="margin-left:auto;display:flex;gap:8px" class="buttons">
+        <button class="tab" id="bring-front"><i class="fa-solid fa-arrow-up"></i> Frente</button>
+        <button class="tab" id="send-back"><i class="fa-solid fa-arrow-down"></i> Fondo</button>
+        <button class="tab" id="duplicate"><i class="fa-regular fa-copy"></i> Duplicar</button>
+        <button class="tab" id="remove"><i class="fa-regular fa-trash-can"></i> Eliminar</button>
+      </div>
+    </div>
+    <div class="canvas" id="canvas">
+      </div>
+    <div class="floatbar" id="floatbar">
+      <button id="fb-dup" title="Duplicar"><i class="fa-regular fa-copy"></i><span>Duplicar</span></button>
+      <button id="fb-front" title="Traer al frente"><i class="fa-solid fa-arrow-up"></i><span>Frente</span></button>
+      <button id="fb-back" title="Enviar al fondo"><i class="fa-solid fa-arrow-down"></i><span>Fondo</span></button>
+      <button id="fb-del" title="Eliminar"><i class="fa-regular fa-trash-can"></i><span>Eliminar</span></button>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="auth">
+  <div class="sheet">
+    <button class="close-x" id="auth-close"><i class="fa-solid fa-xmark"></i></button>
+    <h2>Iniciar sesión</h2>
+    <div class="sheet-body">
+      <div class="field">
+        <label for="login-user">Usuario</label>
+        <input id="login-user" placeholder="admin / tecnico / viewer">
+      </div>
+      <div class="field">
+        <label for="login-pass">Contraseña</label>
+        <input id="login-pass" type="password" placeholder="1234">
+      </div>
+      <button class="submit" id="btn-login">Entrar</button>
+      <button class="close-modal">Salir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+    const NEXT_PUBLIC_SUPABASE_URL = "https://lhnluarfjyzheezfrexr.supabase.co";
+    const NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxobmx1YXJmanl6aGVlemZyZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NzYyOTAsImV4cCI6MjA3MDU1MjI5MH0.igYpeqlYnWW5i9NvOHSvlow3J-yDdEGgK6LRxYwvGY0";
+
+    async function saveToSupabase(page, html) {
+    try {
+        const res = await fetch(`${NEXT_PUBLIC_SUPABASE_URL}/rest/v1/paginas`, {
+            method: "POST",
+            headers: {
+                "apikey": NEXT_PUBLIC_SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates"
+            },
+            body: JSON.stringify({ nombre: page, contenido_html: html })
+        });
+
+        if (!res.ok) {
+            // Si la respuesta no es exitosa, lanza un error
+            throw new Error(`Error de Supabase: ${res.status} ${res.statusText}`);
+        }
+
+        console.log("✅ Guardado en Supabase");
+    } catch (err) {
+        console.error("❌ Error guardando en Supabase", err);
+    }
+}
+
+    async function loadFromSupabase(page) {
+        try {
+            const res = await fetch(`${NEXT_PUBLIC_SUPABASE_URL}/rest/v1/paginas?nombre=eq.${page}&select=contenido_html`, {
+                headers: {
+                    "apikey": NEXT_PUBLIC_SUPABASE_ANON_KEY,
+                    "Authorization": `Bearer ${NEXT_PUBLIC_SUPABASE_ANON_KEY}`
+                }
+            });
+            const data = await res.json();
+            if (data.length > 0) {
+                return data[0].contenido_html;
+            }
+        } catch (err) {
+            console.error("❌ Error cargando de Supabase", err);
+        }
+        return null;
+    }
+
+
+  const qs = sel => document.querySelector(sel);
+  const qsa = sel => Array.from(document.querySelectorAll(sel));
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  const mainWrap = qs('#main-wrap');
+  const canvas = qs('#canvas');
+  const sidebar = qs('#sidebar');
+  const toggleEdit = qs('#toggle-edit');
+  const openAuth = qs('#open-auth');
+  const logoutBtn = qs('#logout-btn');
+  const whoami = qs('#whoami');
+  const navLinks = qsa('.nav .nav-link');
+  const auth = qs('#auth');
+  const closeAuthBtn = qs('.close-modal');
+  const txtContentArea = qs('#txt-content');
+  const floatbar = qs('#floatbar');
+  const canvasToolbar = qs('#canvas-toolbar');
+  
+  let editMode = false;
+  let role = 'viewer';
+  let selected = null;
+  let grid = 20;
+  let snap = true;
+  let currentEditable = null;
+  let currentPage = 'home';
+  const pageContent = {};
+
+  /* ======= NAVIGATION ======= */
+  navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const pageName = link.dataset.page;
+          navigateToPage(pageName);
+      });
+  });
+
+  function navigateToPage(pageName) {
+    if (currentPage === pageName) return;
+
+    savePageContent();
+    loadPageContent(pageName);
+    
+    navLinks.forEach(l => l.classList.remove('active'));
+    const newActiveLink = qs(`[data-page="${pageName}"]`);
+    if (newActiveLink) {
+      newActiveLink.classList.add('active');
+    }
+  }
+
+  function loadPageContent(pageName) {
+      currentPage = pageName;
+      let content = pageContent[pageName];
+      if (!content) {
+          content = getDefaultContent(pageName);
+      }
+      canvas.innerHTML = content;
+      postLoad();
+      adjustCanvasSize();
+      updateCardAccessibility();
+  }
+
+  function savePageContent() {
+      pageContent[currentPage] = canvas.innerHTML;
+      localStorage.setItem('savedPageContent', JSON.stringify(pageContent));
+  }
+
+  function getDefaultContent(page) {
+      const pageData = {
+          home: {
+              title: "Sistema de Gestión de Residuos Sólidos",
+              subtitle: "La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.",
+              cards: [
+                  { title: "Gestión de Metas", desc: "Establece y sigue tus objetivos de sostenibilidad de manera intuitiva.", icon: "fa-bullseye", color: "#38a169", class: "metas", page: "metas", disabled: true },
+                  { title: "Dashboard de Indicadores", desc: "Visualiza en tiempo real el rendimiento del sistema de gestión.", icon: "fa-chart-line", color: "#4299e1", class: "indicadores", page: "indicadores", disabled: false },
+                  { title: "Seguimiento de Avances", desc: "Revisa el progreso de tus proyectos de reciclaje y reducción de residuos.", icon: "fa-chart-area", color: "#ecc94b", class: "avances", page: "avances", disabled: true },
+                  { title: "Generación de Reportes", desc: "Crea y exporta informes detallados para auditorías o análisis.", icon: "fa-file-lines", color: "#e53e3e", class: "reportes", page: "reportes", disabled: true },
+                  { title: "Formularios de Datos", desc: "Ingresa y gestiona datos a través de formularios personalizados.", icon: "fa-file-alt", color: "#673ab7", class: "formularios", page: "formularios", disabled: false },
+              ]
+          },
+          indicadores: {
+              title: "Dashboard de Indicadores Clave",
+              subtitle: "Aquí podrás ver todos los indicadores de gestión de residuos en tiempo real. Utiliza las herramientas de edición para añadir gráficos y métricas.",
+              cards: [
+                  { title: "Métricas de Reciclaje", desc: "Cantidad de material reciclado por mes, tasa de recuperación, etc.", icon: "fa-recycle", color: "#38a169", class: "metas" },
+                  { title: "Indicadores Financieros", desc: "Costos de gestión, ingresos por ventas de material, etc.", icon: "fa-dollar-sign", color: "#4299e1", class: "indicadores" },
+                  { title: "Rendimiento Operacional", desc: "Eficiencia de rutas de recolección, tiempo de procesamiento, etc.", icon: "fa-road", color: "#ecc94b", class: "avances" },
+                  { title: "Impacto Ambiental", desc: "Reducción de emisiones de CO2, ahorro de agua, etc.", icon: "fa-tree", color: "#e53e3e", class: "reportes" },
+              ]
+          },
+          metas: {
+              title: "Gestión de Metas de Sostenibilidad",
+              subtitle: "Define, monitorea y ajusta tus metas ambientales. Un paso a la vez, hacia un futuro más sostenible.",
+              cards: [
+                  { title: "Metas de Reducción", desc: "Objetivos para reducir el volumen de residuos generados.", icon: "fa-minimize", color: "#38a169", class: "metas" },
+                  { title: "Metas de Reciclaje", desc: "Aumentar la tasa de reciclaje en un porcentaje específico.", icon: "fa-trash-arrow-up", color: "#4299e1", class: "indicadores" },
+                  { title: "Metas de Capacitación", desc: "Número de empleados o comunidades capacitadas en gestión de residuos.", icon: "fa-chalkboard-user", color: "#ecc94b", class: "avances" },
+                  { title: "Metas de Certificación", desc: "Lograr certificaciones de gestión ambiental.", icon: "fa-award", color: "#e53e3e", class: "reportes" },
+              ]
+          },
+          avances: {
+              title: "Progreso y Avances del Proyecto",
+              subtitle: "Visualiza el avance de tus iniciativas y proyectos. Celebra tus logros y ajusta lo que sea necesario para alcanzar el éxito.",
+              cards: [
+                  { title: "Progreso en Proyectos", desc: "Seguimiento del estado de proyectos específicos, como la implementación de un nuevo centro de acopio.", icon: "fa-tasks", color: "#38a169", class: "metas" },
+                  { title: "Hitos Alcanzados", desc: "Registro de logros importantes, como la firma de un nuevo acuerdo con un nuevo socio de reciclaje.", icon: "fa-star", color: "#4299e1", class: "indicadores" },
+                  { title: "Análisis de Desempeño", desc: "Evaluación del rendimiento a lo largo del tiempo para identificar tendencias y áreas de mejora.", icon: "fa-arrow-trend-up", color: "#ecc94b", class: "avances" },
+                  { title: "Información de Equipo", desc: "Colabora y coordina con tu equipo para asegurar que todos estén en la misma página.", icon: "fa-users", color: "#e53e3e", class: "reportes" },
+              ]
+          },
+          reportes: {
+              title: "Generación y Descarga de Reportes",
+              subtitle: "Crea informes personalizados para tus stakeholders o para auditorías internas. Todos los datos, a tu alcance.",
+              cards: [
+                  { title: "Reportes Mensuales", desc: "Genera informes automáticos con datos del último mes.", icon: "fa-calendar-alt", color: "#38a169", class: "metas" },
+                  { title: "Reportes Financieros", desc: "Accede a reportes detallados sobre ingresos y gastos.", icon: "fa-chart-pie", color: "#4299e1", class: "indicadores" },
+                  { title: "Reportes de Cumplimiento", desc: "Prepara informes para cumplir con regulaciones y normativas.", icon: "fa-balance-scale", color: "#ecc94b", class: "avances" },
+                  { title: "Reportes Personalizados", desc: "Crea tus propios informes desde cero con los datos que necesites.", icon: "fa-cog", color: "#e53e3e", class: "reportes" },
+              ]
+          },
+          formularios: {
+            title: "Gestión y Creación de Formularios",
+            subtitle: "Diseña, despliega y administra formularios para la recolección de datos en campo. Agiliza la entrada de información.",
+            cards: [
+              { title: "Formularios de Inspección", desc: "Crea formularios para inspecciones de calidad o seguridad en las rutas.", icon: "fa-clipboard-check", color: "#673ab7", class: "formularios" },
+              { title: "Reporte de Incidentes", desc: "Permite a los técnicos registrar incidentes o anomalías al instante.", icon: "fa-exclamation-triangle", color: "#d32f2f", class: "reportes" },
+              { title: "Encuestas de Satisfacción", desc: "Recopila feedback de comunidades o clientes de forma sencilla.", icon: "fa-smile", color: "#fbc02d", class: "avances" },
+              { title: "Registro de Recolección", desc: "Un formulario rápido para registrar el tipo y peso de los residuos recolectados.", icon: "fa-truck-loading", color: "#2e7d32", class: "metas" },
+            ]
+          }
+      };
+      
+      const data = pageData[page];
+      let cardHTML = '';
+      if (data && data.cards) {
+          data.cards.forEach(card => {
+              const isDisabled = card.disabled;
+              const cardClass = `card ${card.class} ${isDisabled ? 'disabled' : ''}`;
+              const dataAttr = isDisabled ? `data-disabled-message="Acceso denegado. Esta función no está disponible en este momento."` : '';
+
+              cardHTML += `
+              <div class="${cardClass}" data-page="${card.page || ''}" ${dataAttr}>
+                  <div class="card-icon" style="background:${card.color};"><i class="fa-solid ${card.icon}"></i></div>
+                  <div class="card-content">
+                      <div class="card-title editable-text">${card.title}</div>
+                      <div class="card-desc editable-text">${card.desc}</div>
+                  </div>
+              </div>`;
+          });
+      }
+
+      const heroHTML = data ? `
+          <div class="hero">
+              <h1 class="editable-text">${data.title}</h1>
+              <p class="editable-text">${data.subtitle}</p>
+          </div>` : '';
+
+      return `
+        ${heroHTML}
+        <div class="cards">
+            ${cardHTML}
+        </div>
+      `;
+  }
+
+  function updateCardAccessibility() {
+    const cards = qsa('.cards .card');
+    cards.forEach(card => {
+        const isRestricted = card.dataset.page === 'metas' || card.dataset.page === 'avances' || card.dataset.page === 'reportes';
+        if (isRestricted) {
+            if (role === 'admin' || role === 'tecnico') {
+                card.classList.remove('disabled');
+                card.removeAttribute('data-disabled-message');
+            } else {
+                card.classList.add('disabled');
+                card.dataset.disabledMessage = "Acceso denegado. Esta función no está disponible en este momento.";
+            }
+        }
+    });
+  }
+
+  /* ======= LOGIN ======= */
+  closeAuthBtn.onclick = () => auth.style.display = 'none';
+  qs('#auth-close').onclick = () => auth.style.display='none';
+  openAuth.onclick = () => auth.style.display='flex';
+
+  const loginInputs = qsa('#auth input, #auth select');
+  loginInputs.forEach(input => {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        qs('#btn-login').click();
+      }
+    });
+  });
+  
+  const navRestricted = qsa('.nav .nav-link.disabled');
+
+  qs('#btn-login').onclick = () => {
+    const u = qs('#login-user').value.trim();
+    const p = qs('#login-pass').value.trim();
+
+    if (p === '1234') {
+      let tempRole = 'viewer';
+      if (u === 'admin') tempRole = 'admin';
+      else if (u === 'tecnico') tempRole = 'tecnico';
+      
+      role = tempRole;
+      whoami.style.display = 'inline';
+      whoami.textContent = `Hola, ${u}`;
+      openAuth.style.display = 'none';
+      logoutBtn.style.display = 'inline-block';
+      auth.style.display = 'none';
+
+      if (role === 'admin' || role === 'tecnico') {
+        toggleEdit.style.display = 'inline-block';
+        navRestricted.forEach(a => a.classList.remove('disabled'));
+      } else {
+        toggleEdit.style.style = 'none';
+        navRestricted.forEach(a => a.classList.add('disabled'));
+      }
+      updateCardAccessibility();
+    } else {
+      alert('Contraseña incorrecta. Use "1234".');
+    }
+  };
+
+  function resetCanvasSelection(){
+    qsa('.selected').forEach(s=>s.classList.remove('selected'));
+    selected = null;
+    hideFloatbar();
+    qs('#sec-general').classList.add('active');
+    qsa('#prop-tabs button').forEach(b => b.classList.remove('active'));
+    qs('[data-tab="general"]').classList.add('active');
+  }
+
+  logoutBtn.onclick = () => {
+    role = 'viewer';
+    whoami.style.display='none';
+    openAuth.style.display='inline-block';
+    logoutBtn.style.display='none';
+    toggleEdit.style.display='none';
+    editMode = false;
+    toggleEdit.classList.remove('active');
+    sidebar.classList.remove('active');
+    mainWrap.classList.remove('edit-active');
+    navRestricted.forEach(a=>a.classList.add('disabled'));
+    resetCanvasSelection();
+    updateEditModeStyles();
+    updateCardAccessibility();
+  };
+  
+  function updateEditModeStyles() {
+    sidebar.classList.toggle('active', editMode);
+    mainWrap.classList.toggle('edit-active', editMode);
+    canvas.classList.toggle('editing', editMode);
+    canvasToolbar.classList.toggle('active', editMode);
+    
+    // Make all existing home elements interactive
+    qsa('.editable-text, .hero, .card').forEach(el => {
+        el.onmousedown = (e) => {
+            if (editMode) {
+                e.stopPropagation();
+                selectItem(el);
+            }
+        };
+        el.ondblclick = (e) => {
+            if (editMode) {
+                e.preventDefault();
+                e.stopPropagation();
+                const editableTarget = e.target.closest('.editable-text') || e.target;
+                if (editableTarget) {
+                    editableTarget.setAttribute('contenteditable', 'true');
+                    editableTarget.focus();
+                    currentEditable = editableTarget;
+                    updatePropInputs(el);
+                }
+            }
+        };
+    });
+
+    // Handle new canvas items
+    qsa('.canvas-item').forEach(item => {
+      if (editMode) {
+        makeInteractive(item);
+      } else {
+        item.classList.remove('selected');
+        item.classList.remove('selectable');
+        qsa('.handle', item).forEach(h => h.remove());
+        item.onmousedown = null;
+        item.ondblclick = null;
+      }
+    });
+
+    // Handle contenteditable for all elements
+    document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+      if (!editMode) {
+          el.removeAttribute('contenteditable');
+      }
+    });
+
+    if (!editMode) {
+      selected = null;
+      hideFloatbar();
+    }
+  }
+
+  /* ======= EDIT MODE ======= */
+  
+toggleEdit.onclick = () => {
+    if(role!=='admin' && role!=='tecnico') return;
+    editMode = !editMode;
+    toggleEdit.classList.toggle('active', editMode);
+    updateEditModeStyles();
+
+    // 🚀 Cuando se desactiva, guarda en Supabase
+    if (!editMode) {
+      savePageContent(); // localStorage
+      saveToSupabase(currentPage, canvas.innerHTML); // nube (Supabase)
+    }
+  };
+
+
+
+  /* ======= HISTORY (UNDO/REDO) ======= */
+  const history = [];
+  const redo = [];
+  let saveTimeout;
+  const saveSnapshot = (delay=300) => {
+    if(saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(()=>{
+      pageContent[currentPage] = canvas.innerHTML;
+      localStorage.setItem('savedPageContent', JSON.stringify(pageContent));
+      history.push(pageContent[currentPage]);
+      if(history.length > 80) history.shift();
+      redo.length = 0;
+      saveTimeout = null;
+    }, delay);
+  };
+  qs('#undo').onclick = () => {
+    if(!history.length) return;
+    redo.push(canvas.innerHTML);
+    canvas.innerHTML = history.pop();
+    pageContent[currentPage] = canvas.innerHTML;
+    localStorage.setItem('savedPageContent', JSON.stringify(pageContent));
+    postLoad();
+  };
+  qs('#redo').onclick = () => {
+    if(!redo.length) return;
+    history.push(canvas.innerHTML);
+    canvas.innerHTML = redo.pop();
+    pageContent[currentPage] = canvas.innerHTML;
+    localStorage.setItem('savedPageContent', JSON.stringify(pageContent));
+    postLoad();
+  };
+  const postLoad = () => {
+    qsa('.canvas-item').forEach(makeInteractive);
+    updateEditModeStyles();
+    selected = null;
+    hideFloatbar();
+    adjustCanvasSize();
+  };
+  window.addEventListener('beforeunload', savePageContent);
+
+  /* ======= INSERT ======= */
+  qsa('[data-insert]').forEach(btn=>{
+    btn.onclick=()=>{
+      if(!editMode) return;
+      const type = btn.dataset.insert;
+      const item = document.createElement('div');
+      item.className = 'canvas-item selectable';
+      item.style.left = '40px'; item.style.top = '40px';
+      item.style.width = '240px'; item.style.height = '60px';
+      item.dataset.type = type;
+
+      if(type==='h2'){ item.innerHTML = '<h2 class="canvas-h2 editable-text">Nuevo título</h2>'; }
+      if(type==='p'){ item.innerHTML = '<p class="canvas-p editable-text">Nuevo texto</p>'; item.style.height='80px'; }
+      if(type==='img'){ item.innerHTML = `<img src="https://i.imgur.com/kS9QJkP.png" alt="Imagen" class="canvas-img" draggable="false">`; item.style.height='160px'; }
+      if(type==='button'){ item.innerHTML = '<a href="#" class="canvas-button editable-text" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">Botón</a>'; item.style.height='48px'; }
+      if(type==='iframe'){ item.innerHTML = `<div class="video-wrapper" style="width:100%;height:100%;position:relative;">
+        <iframe src="" width="100%" height="100%" style="border:0;border-radius:10px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>`; item.style.width='360px'; item.style.height='200px'; }
+      if(type==='table'){ item.style.width='360px'; item.style.height='180px';
+        item.innerHTML = `<table class="canvas-table">
+          <tbody>
+            <tr><td contenteditable="true">A1</td><td contenteditable="true">B1</td></tr>
+            <tr><td contenteditable="true">A2</td><td contenteditable="true">B2</td></tr>
+          </tbody></table>`;
+      }
+
+      saveSnapshot();
+      canvas.appendChild(item);
+      makeInteractive(item);
+      selectItem(item);
+      adjustCanvasSize();
+    }
+  });
+
+  /* ======= INTERACTIVITY (move/resize/rotate) ======= */
+  function makeInteractive(el){
+    el.classList.add('selectable');
+    
+    qsa('.handle', el).forEach(h => h.remove());
+
+    if(el.classList.contains('canvas-item')){
+      ['nw','n','ne','e','se','s','sw','w','rotate'].forEach(pos=>{
+        const h = document.createElement('div');
+        h.className = 'handle '+pos;
+        el.appendChild(h);
+      });
+    }
+
+    el.onmousedown = e => {
+      if(!editMode) return;
+      const target = e.target;
+      selectItem(el);
+      
+      document.querySelectorAll('[contenteditable="true"]').forEach(editable => {
+        if (editable !== target) {
+          editable.removeAttribute('contenteditable');
+        }
+      });
+
+      if(el.classList.contains('canvas-item') && target.classList.contains('rotate')){
+        e.preventDefault();
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width/2;
+        const cy = rect.top + rect.height/2;
+        const startAngle = Math.atan2(e.clientY - cy, e.clientX - cx);
+        const startRot = getRotation(el);
+
+        const move = ev => {
+          const a = Math.atan2(ev.clientY - cy, ev.clientX - cx);
+          const deg = (a - startAngle) * 180/Math.PI + startRot;
+          el.style.transform = `rotate(${deg}deg)`;
+          updatePropInputs(el);
+          showFloatbar(el);
+        };
+        const up = ()=>{ saveSnapshot(); window.removeEventListener('mousemove',move); window.removeEventListener('mouseup',up); };
+        window.addEventListener('mousemove',move);
+        window.addEventListener('mouseup',up);
+        return;
+      }
+
+      if(el.classList.contains('canvas-item') && target.classList.contains('handle')){
+        e.preventDefault();
+        const pos = target.classList[1];
+        const startX = e.clientX, startY = e.clientY;
+        const start = getRect(el);
+        const move = ev=>{
+          const dx = ev.clientX - startX;
+          const dy = ev.clientY - startY;
+          let {x,y,w,h} = {...start};
+
+          if(pos.includes('e')) w = start.w + dx;
+          if(pos.includes('s')) h = start.h + dy;
+          if(pos.includes('w')) { w = start.w - dx; x = start.x + dx; }
+          if(pos.includes('n')) { h = start.h - dy; y = start.y + dy; }
+
+          w = Math.max(40,w); h = Math.max(40,h);
+          if(snap){ x = Math.round(x/grid)*grid; y = Math.round(y/grid)*grid; w = Math.round(w/grid)*grid; h = Math.round(h/grid)*grid; }
+          el.style.left = x+'px'; el.style.top = y+'px'; el.style.width = w+'px'; el.style.height = h+'px';
+          updatePropInputs(el); showFloatbar(el);
+          adjustCanvasSize();
+        };
+        const up=()=>{ saveSnapshot(); window.removeEventListener('mousemove',move); window.removeEventListener('mouseup',up); };
+        window.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
+        return;
+      }
+
+      if(el.classList.contains('canvas-item') && !target.closest('[contenteditable="true"]')){
+        e.preventDefault();
+        const startX = e.clientX, startY = e.clientY;
+        const start = getRect(el);
+        const move = ev=>{
+          let x = start.x + (ev.clientX - startX);
+          let y = start.y + (ev.clientY - startY);
+          if(snap){ x = Math.round(x/grid)*grid; y = Math.round(y/grid)*grid; }
+          el.style.left = x+'px'; el.style.top = y+'px';
+          showFloatbar(el);
+          updatePropInputs(el);
+          adjustCanvasSize();
+        };
+        const up = ()=>{ saveSnapshot(); window.removeEventListener('mousemove',move); window.removeEventListener('mouseup',up);};
+        window.addEventListener('mousemove',move);
+        window.addEventListener('mouseup',up);
+      }
+    };
+
+    el.ondblclick = (e)=>{
+      const target = e.target;
+      if(target.tagName === 'A' || target.tagName === 'DIV' || target.tagName === 'P' || target.tagName === 'H1' || target.tagName === 'H2' || target.tagName === 'TD' || target.tagName === 'LI' || target.classList.contains('editable-text')){
+          target.setAttribute('contenteditable','true');
+          target.focus();
+          currentEditable = target;
+          updatePropInputs(selected);
+          e.stopPropagation();
+      }
+    };
+
+    el.addEventListener('focusout', (e)=>{
+      const target = e.target;
+      if(['H1','P','H2','TD','LI','A','DIV'].includes(target.tagName) || target.classList.contains('editable-text')){
+        target.removeAttribute('contenteditable');
+        currentEditable = null;
+        saveSnapshot();
+      }
+    });
+
+  }
+
+  function getRect(el){
+    if (el.classList.contains('canvas-item')) {
+      const style = window.getComputedStyle(el);
+      const x = parseInt(style.left) || el.offsetLeft;
+      const y = parseInt(style.top) || el.offsetTop;
+      const w = parseInt(style.width) || el.offsetWidth;
+      const h = parseInt(style.height) || el.offsetHeight;
+      return { x, y, w, h };
+    } else {
+      const rect = el.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const x = rect.left - canvasRect.left;
+      const y = rect.top - canvasRect.top;
+      return { x, y, w: rect.width, h: rect.height };
+    }
+  }
+
+  function getRotation(el){
+    const m = (el.style.transform||'').match(/rotate\(([-\d.]+)deg\)/);
+    return m ? parseFloat(m[1]) : 0;
+  }
+
+  /* ======= SELECCIÓN Y FLOATBAR ======= */
+  function selectItem(el){
+    if(!editMode) return;
+    qsa('.selected').forEach(s=>s.classList.remove('selected'));
+    el.classList.add('selected'); selected = el;
+    showFloatbar(el);
+    updatePropInputs(el);
+    highlightTabByType(el);
+  }
+  function showFloatbar(el){
+    const r = el.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    const scrollX = canvas.scrollLeft;
+    const scrollY = canvas.scrollTop;
+    
+    // Calculate position relative to the canvas
+    const newLeft = (r.left - canvasRect.left + scrollX) + (r.width / 2);
+    const newTop = r.top - canvasRect.top + scrollY - floatbar.offsetHeight - 8;
+    
+    floatbar.style.left = newLeft + 'px';
+    floatbar.style.top = newTop + 'px';
+    floatbar.style.display = 'flex';
+
+    const isCanvasItem = el.classList.contains('canvas-item');
+    const isHero = el.classList.contains('hero');
+
+    qs('#fb-front').style.display = isCanvasItem ? 'flex' : 'none';
+    qs('#fb-back').style.display = isCanvasItem ? 'flex' : 'none';
+    qs('#fb-del').style.display = isHero ? 'none' : 'flex';
+  }
+  function hideFloatbar(){ floatbar.style.display='none'; }
+
+  qs('#fb-dup').onclick = ()=>{ 
+    if(!selected) return; 
+    saveSnapshot(); 
+    const clone = selected.cloneNode(true);
+    
+    // Remove selected class from the cloned element
+    clone.classList.remove('selected');
+    
+    if (selected.classList.contains('canvas-item')) {
+      const rect = getRect(selected);
+      clone.style.left = (rect.x + 20) + 'px';
+      clone.style.top = (rect.y + 20) + 'px';
+      canvas.appendChild(clone); 
+      makeInteractive(clone);
+    } else {
+        const parent = selected.parentElement;
+        parent.appendChild(clone);
+    }
+    
+    selectItem(clone); 
+    adjustCanvasSize(); 
+  };
+
+  qs('#fb-front').onclick = ()=>{ 
+    if(!selected) return; 
+    saveSnapshot(); 
+    let currentZ = parseInt(window.getComputedStyle(selected).zIndex) || 1;
+    selected.style.zIndex = Math.max(currentZ, 2) + 1;
+  };
+
+  qs('#fb-back').onclick = ()=>{ 
+    if(!selected) return; 
+    saveSnapshot(); 
+    let currentZ = parseInt(window.getComputedStyle(selected).zIndex) || 1;
+    selected.style.zIndex = Math.max(1, currentZ - 1);
+  };
+
+  qs('#fb-del').onclick = ()=>{ 
+    if(!selected) return; 
+    saveSnapshot(); 
+    selected.remove();
+    selected=null; 
+    hideFloatbar(); 
+    adjustCanvasSize(); 
+  };
+
+  qs('#duplicate').onclick = ()=> qs('#fb-dup').click();
+  qs('#bring-front').onclick = ()=> qs('#fb-front').click();
+  qs('#send-back').onclick = ()=> qs('#fb-back').click();
+  qs('#remove').onclick = ()=> qs('#fb-del').click();
+
+  canvas.addEventListener('mousedown', (e)=>{ if(!editMode) return; if(e.target===canvas){ resetCanvasSelection(); }});
+  
+  document.addEventListener('mousedown', (e) => {
+    if (editMode) {
+      const target = e.target;
+      const isClickInsideCanvas = canvas.contains(target);
+      const isClickInsideSidebar = sidebar.contains(target);
+      const isClickInsideFloatbar = floatbar.contains(target);
+      const isSelectableTarget = target.closest('.selectable, .editable-text, .hero, .card');
+
+      if (!isSelectableTarget && !isClickInsideSidebar && !isClickInsideFloatbar) {
+        resetCanvasSelection();
+      }
+    }
+  });
+  
+  // New event listener for home page elements
+  canvas.addEventListener('click', (e) => {
+    if (!editMode) {
+      const card = e.target.closest('.card');
+      if (card) {
+          if (card.classList.contains('disabled')) {
+              e.preventDefault();
+              const message = card.dataset.disabledMessage || "Acceso denegado.";
+              alert(message);
+              return;
+          }
+          if (card.dataset.page) {
+              e.preventDefault();
+              navigateToPage(card.dataset.page);
+              return;
+          }
+      }
+    }
+
+    let target = e.target;
+    let selectableElement = target.closest('.selectable, .editable-text, .hero, .card');
+
+    if (selectableElement) {
+        selectItem(selectableElement);
+    } else {
+        resetCanvasSelection();
+    }
+  });
+  
+
+  /* ======= PROPIEDADES DINÁMICAS (EN TIEMPO REAL) ======= */
+  const tabBtns = qsa('#prop-tabs .tab');
+  const sections = {
+    general: qs('#sec-general'), texto: qs('#sec-texto'), imagen: qs('#sec-imagen'),
+    video: qs('#sec-video'), boton: qs('#sec-boton'), tabla: qs('#sec-tabla'), lienzo: qs('#sec-lienzo')
+  };
+  tabBtns.forEach(b=>{ b.onclick=()=>{ tabBtns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); Object.values(sections).forEach(s=>s.classList.remove('active')); sections[b.dataset.tab].classList.add('active'); }});
+
+  qsa('#sec-general input, #sec-general select').forEach(input => input.addEventListener('input', updateGeneralProps));
+  qsa('#sec-texto input, #sec-texto select').forEach(input => input.addEventListener('input', updateTextProps));
+  qsa('#sec-imagen input, #sec-imagen select').forEach(input => input.addEventListener('input', updateImageProps));
+  qsa('#sec-video input, #sec-video select').forEach(input => input.addEventListener('input', updateVideoProps));
+  qsa('#sec-boton input, #sec-boton select').forEach(input => input.addEventListener('input', updateButtonProps));
+  qsa('#sec-tabla input, #sec-tabla select').forEach(input => input.addEventListener('input', updateTableProps));
+  qsa('#sec-lienzo input, #sec-lienzo select').forEach(input => input.addEventListener('input', updateCanvasProps));
+
+  txtContentArea.addEventListener('input', () => {
+    if (currentEditable) {
+      currentEditable.textContent = txtContentArea.value;
+      saveSnapshot();
+    }
+    txtContentArea.style.height = 'auto';
+    txtContentArea.style.height = txtContentArea.scrollHeight + 'px';
+  });
+
+  const videoUploadInput = qs('#video-upload');
+  qs('#upload-btn').onclick = () => { videoUploadInput.click(); };
+  videoUploadInput.onchange = (e) => { const file = e.target.files[0]; if (file) { const url = URL.createObjectURL(file); qs('#vid-src').value = url; if (selected) { updateVideoProps(); } }};
+
+  const imageUploadInput = qs('#image-upload');
+  imageUploadInput.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file && selected && selected.dataset.type === 'img') {
+      const img = selected.querySelector('img');
+      if (img) {
+        const url = URL.createObjectURL(file);
+        img.src = url;
+        const tempImg = new Image();
+        tempImg.onload = function() {
+          selected.style.width = this.naturalWidth + 'px';
+          selected.style.height = this.naturalHeight + 'px';
+          updatePropInputs(selected);
+          saveSnapshot();
+          URL.revokeObjectURL(tempImg.src);
+        };
+        tempImg.src = url;
+        qs('#img-src').value = url;
+      }
+    }
+  };
+
+  function updateGeneralProps(){
+    if(!selected) return;
+    saveSnapshot();
+    const x = parseInt(qs('#gen-x').value)||0;
+    const y = parseInt(qs('#gen-y').value)||0;
+    const w = Math.max(40, parseInt(qs('#gen-w').value)||100);
+    const h = Math.max(40, parseInt(qs('#gen-h').value)||100);
+    if (selected.classList.contains('canvas-item')) {
+      selected.style.left = (snap?Math.round(x/grid)*grid:x)+'px';
+      selected.style.top  = (snap?Math.round(y/grid)*grid:y)+'px';
+      selected.style.width = (snap?Math.round(w/grid)*grid:w)+'px';
+      selected.style.height = (snap?Math.round(h/grid)*grid:h)+'px';
+    } else {
+        selected.style.width = w + 'px';
+        selected.style.height = h + 'px';
+    }
+    
+    selected.style.backgroundColor = qs('#gen-bg').value;
+    selected.style.borderColor = qs('#gen-bc').value;
+    selected.style.borderWidth = (parseInt(qs('#gen-bw').value)||0)+'px';
+    selected.style.borderStyle = 'solid';
+    selected.style.borderRadius = (parseInt(qs('#gen-br').value)||0)+'px';
+    selected.style.padding = (parseInt(qs('#gen-pad').value)||0)+'px';
+    const sh = qs('#gen-shadow').value;
+    selected.style.boxShadow = sh==='sm'?'0 6px 10px rgba(0,0,0,.08)': sh==='md'?'0 10px 20px rgba(0,0,0,.12)': sh==='lg'?'0 18px 30px rgba(0,0,0,.18)':'none';
+    const rot = parseInt(qs('#gen-rot').value)||0;
+    selected.style.transform = `rotate(${rot}deg)`;
+    selected.style.zIndex = parseInt(qs('#gen-z').value)||1;
+    showFloatbar(selected);
+    adjustCanvasSize();
+  }
+
+  function updateTextProps(){
+    if(!currentEditable) return;
+    saveSnapshot();
+    currentEditable.style.fontFamily = qs('#txt-font').value;
+    currentEditable.style.fontSize = (parseInt(qs('#txt-size').value)||18)+'px';
+    currentEditable.style.color = qs('#txt-color').value;
+    currentEditable.style.textAlign = qs('#txt-align').value;
+    adjustCanvasSize();
+  }
+
+  function updateImageProps(){
+    if(!selected) return;
+    const img = selected.querySelector('img'); if(!img) return;
+    saveSnapshot();
+    const src=qs('#img-src').value.trim(); if(src) img.src=src;
+    img.alt = qs('#img-alt').value;
+    img.style.objectFit = qs('#img-fit').value;
+    const w = parseInt(qs('#img-w').value); const h=parseInt(qs('#img-h').value);
+    if(w) selected.style.width = (snap?Math.round(w/grid)*grid:w)+'px';
+    if(h) selected.style.height = (snap?Math.round(h/grid)*grid:h)+'px';
+    adjustCanvasSize();
+  }
+
+  function updateVideoProps(){
+    if(!selected) return;
+    const iframe = selected.querySelector('iframe'); if(!iframe) return;
+    saveSnapshot();
+    let src = qs('#vid-src').value.trim();
+    iframe.src = src || '';
+    const w = parseInt(qs('#vid-w').value); const h = parseInt(qs('#vid-h').value);
+    if(w) selected.style.width = (snap ? Math.round(w / grid) * grid : w) + 'px';
+    if(h) selected.style.height = (snap ? Math.round(h / grid) * grid : h) + 'px';
+    adjustCanvasSize();
+  }
+
+  function updateButtonProps(){
+    if(!selected) return;
+    const a = selected.querySelector('a'); if(!a) return;
+    saveSnapshot();
+    a.textContent = qs('#btn-text').value||'Botón';
+    a.href = qs('#btn-href').value||'#';
+    a.style.background = qs('#btn-bg').value;
+    a.style.color = qs('#btn-fg').value;
+    a.style.borderRadius = (parseInt(qs('#btn-radius').value)||12)+'px';
+    a.style.padding = (parseInt(qs('#btn-pad').value)||10)+'px';
+    adjustCanvasSize();
+  }
+
+  function updateTableProps(){
+    const t=getTable(); if(!t) return; saveSnapshot();
+    const bc = qs('#tbl-bc').value; const bw = parseInt(qs('#tbl-bw').value)||1;
+    const cell = qs('#tbl-cell').value; const pad = (parseInt(qs('#tbl-pad').value)||8)+'px';
+    t.querySelectorAll('td,th').forEach(td=>{ td.style.border = `${bw}px solid ${bc}`; td.style.background=cell; td.style.padding=pad;});
+    adjustCanvasSize();
+  }
+
+  function updateCanvasProps(){
+    grid = Math.max(4, parseInt(qs('#canvas-grid').value)||20);
+    snap = (qs('#canvas-snap').value==='on');
+    canvas.style.backgroundSize = grid+'px '+grid+'px';
+  }
+
+
+  function updatePropInputs(el){
+    if(!el) return;
+    const isCanvasItem = el.classList.contains('canvas-item');
+
+    if (isCanvasItem) {
+      const rect = getRect(el);
+      qs('#gen-x').value = rect.x; qs('#gen-y').value = rect.y;
+      qs('#gen-w').value = rect.w; qs('#gen-h').value = rect.h;
+      qs('#gen-rot').value = getRotation(el);
+      qs('#gen-z').value = parseInt(el.style.zIndex||'1');
+      qs('#gen-bg').value = toHex(window.getComputedStyle(el).backgroundColor);
+      qs('#gen-bc').value = toHex(window.getComputedStyle(el).borderColor);
+      qs('#gen-bw').value = parseInt(window.getComputedStyle(el).borderWidth) || 0;
+      qs('#gen-br').value = parseInt(window.getComputedStyle(el).borderRadius) || 0;
+      qs('#gen-pad').value = parseInt(window.getComputedStyle(el).padding) || 0;
+      const sh = qs('#gen-shadow').value;
+      selected.style.boxShadow = sh==='sm'?'0 6px 10px rgba(0,0,0,.08)': sh==='md'?'0 10px 20px rgba(0,0,0,.12)': sh==='lg'?'0 18px 30px rgba(0,0,0,.18)':'none';
+      qs('#gen-rot').disabled = false;
+      qs('#gen-z').disabled = false;
+      qs('#gen-bg').disabled = false;
+      qs('#gen-bc').disabled = false;
+      qs('#gen-bw').disabled = false;
+      qs('#gen-br').disabled = false;
+      qs('#gen-pad').disabled = false;
+      qs('#gen-shadow').disabled = false;
+    } else {
+      const r = el.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      qs('#gen-x').value = Math.round(r.left - canvasRect.left + canvas.scrollLeft);
+      qs('#gen-y').value = Math.round(r.top - canvasRect.top + canvas.scrollTop);
+      qs('#gen-w').value = Math.round(r.width);
+      qs('#gen-h').value = Math.round(r.height);
+      qs('#gen-rot').value = 0;
+      qs('#gen-z').value = 1;
+      
+      qsa('#sec-general input, #sec-general select').forEach(input => {
+          if (input.id !== 'gen-w' && input.id !== 'gen-h') {
+              input.disabled = true;
+          } else {
+              input.disabled = false;
+          }
+      });
+    }
+    
+    const t = currentEditable || el.querySelector('h1,h2,p,li,td,a,div') || el;
+    if(t && (t.tagName === 'P' || t.tagName === 'H1' || t.tagName === 'H2' || t.tagName === 'A' || t.classList.contains('card-title') || t.classList.contains('card-desc'))){
+      if(t.classList.contains('canvas-button') || t.classList.contains('hero-button')){
+          qs('#btn-text').value = t.textContent;
+      }
+      
+      txtContentArea.value = t.textContent || '';
+      txtContentArea.style.height = 'auto';
+      txtContentArea.style.height = txtContentArea.scrollHeight + 'px';
+      
+      qs('#txt-font').value = (window.getComputedStyle(t).fontFamily||'Inter').replace(/["']/g,'') || 'Inter';
+      qs('#txt-size').value = parseInt(window.getComputedStyle(t).fontSize)||18;
+      qs('#txt-color').value = toHex(window.getComputedStyle(t).color);
+      qs('#txt-align').value = window.getComputedStyle(t).textAlign || 'left';
+      
+      qsa('#sec-texto input, #sec-texto select').forEach(input => {input.disabled = false;});
+      qsa('#sec-texto button').forEach(btn => {btn.disabled = false;});
+
+    } else {
+        txtContentArea.value = '';
+        txtContentArea.style.height = '80px';
+        qs('#txt-font').value = 'Inter';
+        qs('#txt-size').value = 18;
+        qs('#txt-color').value = '#243b53';
+        qs('#txt-align').value = 'left';
+        
+        qsa('#sec-texto input, #sec-texto select').forEach(input => {input.disabled = true;});
+        qsa('#sec-texto button').forEach(btn => {btn.disabled = true;});
+    }
+
+    const im = el.querySelector('img');
+    if(im){
+      qs('#img-src').value = im.src||'';
+      qs('#img-alt').value = im.alt||'';
+      qs('#img-fit').value = im.style.objectFit||'cover';
+      qs('#img-w').value = parseInt(el.style.width)||im.width;
+      qs('#img-h').value = parseInt(el.style.height)||im.height;
+    }
+
+    const vf = el.querySelector('iframe');
+    if(vf){
+      qs('#vid-src').value = vf.src||'';
+      qs('#vid-w').value = parseInt(el.style.width)||vf.width||360;
+      qs('#vid-h').value = parseInt(el.style.height)||vf.height||200;
+    }
+
+    const ab = el.querySelector('a');
+    if(ab){
+      qs('#btn-text').value = ab.textContent||'Botón';
+      qs('#btn-href').value = ab.getAttribute('href')||'#';
+      qs('#btn-bg').value = toHex(window.getComputedStyle(ab).backgroundColor);
+      qs('#btn-fg').value = toHex(window.getComputedStyle(ab).color);
+      qs('#btn-radius').value = parseInt(window.getComputedStyle(ab).borderRadius)||12;
+      qs('#btn-pad').value = parseInt(window.getComputedStyle(ab).padding)||10;
+    }
+  }
+
+  // Textos
+  qs('#txt-bold').onmousedown = (e)=> { e.preventDefault(); execOnText('bold'); };
+  qs('#txt-italic').onmousedown = (e)=> { e.preventDefault(); execOnText('italic'); };
+  qs('#txt-underline').onmousedown = (e)=> { e.preventDefault(); execOnText('underline'); };
+
+  qs('#txt-list').onclick = () => {
+    if (!currentEditable) return;
+    saveSnapshot();
+    const ul = document.createElement('ul');
+    ul.style.margin = '0';
+    ul.style.paddingLeft = '18px';
+    ul.style.listStyle = 'disc';
+    ul.innerHTML = `<li>${currentEditable.innerHTML}</li>`;
+    currentEditable.replaceWith(ul);
+    ul.querySelectorAll('li').forEach(li => { li.setAttribute('contenteditable', 'true'); });
+    currentEditable = ul.querySelector('li');
+    updatePropInputs(selected);
+    adjustCanvasSize();
+  };
+
+  function execOnText(command){
+    if(currentEditable) {
+      document.execCommand(command, false, null);
+      currentEditable.focus();
+      saveSnapshot();
+    }
+  }
+
+  // Tabla
+  function getTable(){ return selected ? selected.querySelector('table') : null; }
+  qs('#tbl-add-row').onclick = ()=>{ const t=getTable(); if(!t) return; saveSnapshot(); const cols=t.rows[0]?.cells.length||2; const tr=t.insertRow(-1); for(let i=0;i<cols;i++){const td=tr.insertCell(-1); td.textContent=''; td.style.border='1px solid #cbd5e1'; td.style.padding='8px'; td.setAttribute('contenteditable','true');} adjustCanvasSize(); };
+  qs('#tbl-del-row').onclick = ()=>{ const t=getTable(); if(!t) return; if(t.rows.length>0){ saveSnapshot(); t.deleteRow(-1);} adjustCanvasSize(); };
+  qs('#tbl-add-col').onclick = ()=>{ const t=getTable(); if(!t) return; saveSnapshot(); Array.from(t.rows).forEach(r=>r.insertCell(-1).outerHTML=`<td></td>`); adjustCanvasSize(); };
+  qs('#tbl-del-col').onclick = ()=>{ const t=getTable(); if(!t) return; const len=t.rows[0]?.cells.length||0; if(len>0){ saveSnapshot(); Array.from(t.rows).forEach(r=>r.deleteCell(len-1)); } adjustCanvasSize(); };
+
+  function highlightTabByType(el){
+    const type = el.dataset.type || detectType(el);
+    const map = {h1: 'texto', h2:'texto', p:'texto', a:'boton', ul: 'texto', img:'imagen', iframe:'video', button:'boton', table:'tabla', div:'general'};
+    const tab = map[type] || 'general';
+    tabBtns.forEach(x=>x.classList.remove('active'));
+    Object.values(sections).forEach(s=>s.classList.remove('active'));
+    qs(`[data-tab="${tab}"]`).classList.add('active');
+    sections[tab].classList.add('active');
+  }
+  function detectType(el){
+    if(el.closest('.canvas-item[data-type="img"]')) return 'img';
+    if(el.closest('.canvas-item[data-type="iframe"]')) return 'iframe';
+    if(el.closest('.canvas-item[data-type="table"]')) return 'table';
+    if(el.closest('.canvas-item[data-type="button"]')) return 'button';
+    if(el.tagName === 'H1') return 'h1';
+    if(el.tagName === 'P') return 'p';
+    if(el.tagName === 'A' && el.classList.contains('hero-button')) return 'a';
+    if(el.classList.contains('card-title')) return 'h2';
+    if(el.classList.contains('card-desc')) return 'p';
+    if(el.tagName === 'TD') return 'td';
+    return 'div';
+  }
+
+  function toHex(rgbStr){
+    if(!rgbStr) return '#000000';
+    const m = rgbStr.match(/(\d+),\s*(\d+),\s*(\d+)/);
+    if(!m) return '#000000';
+    const r = (+m[1]).toString(16).padStart(2,'0');
+    const g = (+m[2]).toString(16).padStart(2,'0');
+    const b = (+m[3]).toString(16).padStart(2,'0');
+    return `#${r}${g}${b}`;
+  }
+
+  function adjustCanvasSize() {
+    let maxBottom = 0;
+    const allElements = qsa('.selectable, .editable-text, .canvas-item, .hero, .card, .cards');
+    allElements.forEach(item => {
+        const rect = item.getBoundingClientRect();
+        const bottom = rect.top + rect.height;
+        if (bottom > maxBottom) {
+            maxBottom = bottom;
+        }
+    });
+    
+    // Convert maxBottom to a value relative to the canvas's top
+    const canvasTop = canvas.getBoundingClientRect().top;
+    const canvasMinHeight = maxBottom - canvasTop + 40; // Add some padding at the bottom
+    
+    // Ensure the canvas is at least the viewport height
+    const viewportHeight = window.innerHeight - qs('.topbar').offsetHeight - 36;
+    canvas.style.minHeight = Math.max(viewportHeight, canvasMinHeight) + 'px';
+  }
+
+  // Load saved content from localStorage or default content
+  const savedContent = localStorage.getItem('savedPageContent');
+  if (savedContent) {
+      Object.assign(pageContent, JSON.parse(savedContent));
+  } else {
+      // Initialize with default content
+      pageContent.home = getDefaultContent('home');
+      pageContent.indicadores = getDefaultContent('indicadores');
+      pageContent.metas = getDefaultContent('metas');
+      pageContent.avances = getDefaultContent('avances');
+      pageContent.reportes = getDefaultContent('reportes');
+      pageContent.formularios = getDefaultContent('formularios');
+  }
+
+  // Carga la página de inicio por defecto
+  loadPageContent('home');
+})();
+</script>
+
+
+<!-- ================== SUPABASE INTEGRATION (MEJORADA) ================== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = window.__SUPABASE_URL__ || window.__SUPABASE_URL__;
+const SUPABASE_ANON_KEY = window.__SUPABASE_KEY__ || window.__SUPABASE_ANON_KEY__;
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentPage = window.currentPage || 'home';
+const canvasEl = document.getElementById('canvas');
+const toggleEditBtn = document.getElementById('toggle-edit');
+const openAuthBtn = document.getElementById('open-auth');
+const logoutBtn = document.getElementById('logout-btn');
+const whoami = document.getElementById('whoami');
+
+async function signInWithEmail(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
+}
+
+async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+}
+
+async function getUserRole(uid) {
+  if (!uid) return 'viewer';
+  const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', uid).maybeSingle();
+  if (error) return 'viewer';
+  return data?.role || 'viewer';
+}
+
+async function loadFromSupabase(pageName) {
+  const { data, error } = await supabase.from('paginas').select('contenido_html').eq('nombre', pageName).maybeSingle();
+  if (error) return null;
+  return data?.contenido_html;
+}
+
+async function saveToSupabase(pageName, htmlContent) {
+  const user = (await supabase.auth.getUser()).data.user;
+  const { error } = await supabase.from('paginas').upsert([{
+    nombre: pageName,
+    contenido_html: htmlContent,
+    actualizado: new Date().toISOString(),
+    actualizado_por: user?.id || null
+  }], { onConflict: ['nombre'] });
+  if (error) throw error;
+}
+
+let realtimeChannel = null;
+function subscribePageRealtime(pageName) {
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+  realtimeChannel = supabase.channel('paginas:' + pageName)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'paginas', filter: `nombre=eq.${pageName}` }, payload => {
+      if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+        const newHtml = payload.new?.contenido_html;
+        if (newHtml && newHtml !== canvasEl.innerHTML) {
+          canvasEl.innerHTML = newHtml;
+        }
+      }
+    }).subscribe();
+}
+
+const authModal = document.getElementById('auth');
+const loginUserInput = document.getElementById('login-user');
+const loginPassInput = document.getElementById('login-pass');
+const btnLogin = document.getElementById('btn-login');
+
+openAuthBtn.onclick = ()=>{authModal.style.display='flex'};
+btnLogin.onclick = async ()=>{
+  const userVal = loginUserInput.value.trim();
+  const passVal = loginPassInput.value.trim();
+  try{
+    let signResult;
+    if(userVal.includes('@')){
+      signResult = await signInWithEmail(userVal, passVal);
+    } else {
+      const fallbackEmail = userVal+'@example.com';
+      signResult = await signInWithEmail(fallbackEmail, passVal);
+    }
+    const user = signResult?.user ?? (await supabase.auth.getUser()).data.user;
+    const role = await getUserRole(user.id);
+    whoami.style.display='inline'; whoami.textContent=user.email;
+    openAuthBtn.style.display='none'; logoutBtn.style.display='inline-block';
+    toggleEditBtn.style.display=(role==='admin'||role==='tecnico')?'inline-block':'none';
+    authModal.style.display='none';
+    subscribePageRealtime(currentPage);
+  }catch(err){alert('Error login: '+err.message)}
+};
+
+logoutBtn.onclick = async ()=>{
+  await signOut();
+  whoami.style.display='none';
+  openAuthBtn.style.display='inline-block';
+  logoutBtn.style.display='none';
+  toggleEditBtn.style.display='none';
+};
+
+toggleEditBtn.onclick = async ()=>{
+  const editMode = canvasEl.isContentEditable;
+  canvasEl.contentEditable = !editMode;
+  if(editMode){
+    try{
+      await saveToSupabase(currentPage, canvasEl.innerHTML);
+      alert('Guardado en Supabase');
+    }catch(err){alert('Error guardando: '+err.message)}
+  }
+};
+
+(async function init(){
+  const html = await loadFromSupabase(currentPage);
+  if(html) canvasEl.innerHTML=html;
+  subscribePageRealtime(currentPage);
+  const { data: { user } } = await supabase.auth.getUser();
+  if(user){
+    const role = await getUserRole(user.id);
+    whoami.style.display='inline'; whoami.textContent=user.email;
+    openAuthBtn.style.display='none'; logoutBtn.style.display='inline-block';
+    toggleEditBtn.style.display=(role==='admin'||role==='tecnico')?'inline-block':'none';
+  }
+})();
+</script>
+<!-- ================== /SUPABASE INTEGRATION ================== -->
