@@ -564,13 +564,18 @@
                 "apikey": NEXT_PUBLIC_SUPABASE_ANON_KEY,
                 "Authorization": `Bearer ${NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
                 "Content-Type": "application/json",
-                "Prefer": "resolution=merge-duplicates"
+                "Prefer": "return=minimal"
             },
-            body: JSON.stringify({ nombre: page, contenido_html: html })
+            body: JSON.stringify({ 
+                nombre: page, 
+                contenido_html: html,
+                updated_at: new Date().toISOString()
+            })
         });
 
         if (!res.ok) {
-            // Si la respuesta no es exitosa, lanza un error
+            const errorData = await res.text();
+            console.error("Detalles del error:", errorData);
             throw new Error(`Error de Supabase: ${res.status} ${res.statusText}`);
         }
 
