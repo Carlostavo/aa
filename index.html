@@ -17,11 +17,12 @@
       <a href="#" class="disabled">Reportes</a>
       <a href="#">Formularios</a>
     </nav>
-    <button id="loginBtn">Iniciar sesión</button>
-<button id="logoutBtn" hidden>Cerrar sesión</button>
-<span id="username" hidden></span>
-<button id="editModeBtn" hidden>✏️ Modo edición</button>
-
+    <div class="user-controls">
+      <button id="loginBtn">Iniciar sesión</button>
+      <button id="logoutBtn" style="display:none;">Cerrar sesión</button>
+      <span id="username" style="display:none;"></span>
+      <button id="editModeBtn" style="display:none;">✏️ Modo edición</button>
+    </div>
   </header>
 
   <!-- Hero -->
@@ -57,24 +58,25 @@
   </section>
 
   <!-- Sidebar edición -->
-  <aside id="editorPanel" hidden>
+  <aside id="editorPanel" style="display:none;">
     <h3>Panel de edición</h3>
     <textarea id="editContent"></textarea>
     <button id="saveEdit">💾 Guardar</button>
+    <button id="cancelEdit">❌ Cancelar</button>
   </aside>
   
-<!-- Modal de Login -->
-<div id="loginModal" class="modal" hidden>
-  <div class="modal-content">
-    <h3>Iniciar Sesión</h3>
-    <input type="email" id="loginEmail" placeholder="Correo" />
-    <input type="password" id="loginPassword" placeholder="Contraseña" />
-    <button id="doLogin">Entrar</button>
-    <button id="closeLogin">Cerrar</button>
+  <!-- Modal de Login -->
+  <div id="loginModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>Iniciar Sesión</h3>
+      <input type="email" id="loginEmail" placeholder="Correo" />
+      <input type="password" id="loginPassword" placeholder="Contraseña" />
+      <button id="doLogin">Entrar</button>
+      <button id="closeLogin">Cerrar</button>
+      <p id="loginError" style="color:red; display:none;"></p>
+    </div>
   </div>
-</div>
 
   <script type="module" src="script.js"></script>
 </body>
 </html>
-
