@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestión RS</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <h1>Gestión RS</h1>
+    <nav>
+      <a href="#" class="active">Inicio</a>
+      <a href="#">Indicadores</a>
+      <a href="#" class="disabled">Metas</a>
+      <a href="#" class="disabled">Avances</a>
+      <a href="#" class="disabled">Reportes</a>
+      <a href="#">Formularios</a>
+    </nav>
+    <button id="editModeBtn">✏️ Modo edición</button>
+    <button id="loginBtn">Iniciar sesión</button>
+    <button id="logoutBtn" hidden>Cerrar sesión</button>
+    <span id="username" hidden></span>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h2 id="hero-title" data-section="hero-title">Sistema de Gestión de Residuos Sólidos</h2>
+    <p id="hero-subtitle" data-section="hero-subtitle">
+      La plataforma para monitorear indicadores, gestionar metas y generar reportes para una gestión ambiental eficiente.
+    </p>
+  </section>
+
+  <!-- Cards -->
+  <section class="cards">
+    <div class="card disabled" data-section="card-metas">
+      <h3>Gestión de Metas</h3>
+      <p id="card-metas">Establecer y seguir objetivos de sostenibilidad.</p>
+    </div>
+    <div class="card" data-section="card-indicadores">
+      <h3>Dashboard de Indicadores</h3>
+      <p id="card-indicadores">Visualiza el rendimiento en tiempo real.</p>
+    </div>
+    <div class="card disabled" data-section="card-avances">
+      <h3>Seguimiento de Avances</h3>
+      <p id="card-avances">Revisa el progreso de proyectos.</p>
+    </div>
+    <div class="card disabled" data-section="card-reportes">
+      <h3>Generación de Reportes</h3>
+      <p id="card-reportes">Crea y exporta informes.</p>
+    </div>
+    <div class="card" data-section="card-formularios">
+      <h3>Formularios de Datos</h3>
+      <p id="card-formularios">Ingresa y gestiona datos.</p>
+    </div>
+  </section>
+
+  <!-- Sidebar edición -->
+  <aside id="editorPanel" hidden>
+    <h3>Panel de edición</h3>
+    <textarea id="editContent"></textarea>
+    <button id="saveEdit">💾 Guardar</button>
+  </aside>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
