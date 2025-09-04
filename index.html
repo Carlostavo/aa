@@ -17,10 +17,11 @@
       <a href="#" class="disabled">Reportes</a>
       <a href="#">Formularios</a>
     </nav>
-    <button id="editModeBtn">✏️ Modo edición</button>
     <button id="loginBtn">Iniciar sesión</button>
-    <button id="logoutBtn" hidden>Cerrar sesión</button>
-    <span id="username" hidden></span>
+<button id="logoutBtn" hidden>Cerrar sesión</button>
+<span id="username" hidden></span>
+<button id="editModeBtn" hidden>✏️ Modo edición</button>
+
   </header>
 
   <!-- Hero -->
@@ -61,7 +62,19 @@
     <textarea id="editContent"></textarea>
     <button id="saveEdit">💾 Guardar</button>
   </aside>
+  
+<!-- Modal de Login -->
+<div id="loginModal" class="modal" hidden>
+  <div class="modal-content">
+    <h3>Iniciar Sesión</h3>
+    <input type="email" id="loginEmail" placeholder="Correo" />
+    <input type="password" id="loginPassword" placeholder="Contraseña" />
+    <button id="doLogin">Entrar</button>
+    <button id="closeLogin">Cerrar</button>
+  </div>
+</div>
 
   <script type="module" src="script.js"></script>
 </body>
 </html>
+
