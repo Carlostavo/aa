@@ -5,10 +5,73 @@ const editorPanel = document.getElementById("editorPanel");
 const saveEdit = document.getElementById("saveEdit");
 const editContent = document.getElementById("editContent");
 
-let currentSection = null;
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const username = document.getElementById("username");
+const loginModal = document.getElementById("loginModal");
+const doLogin = document.getElementById("doLogin");
+const closeLogin = document.getElementById("closeLogin");
 
-// Modo edición
+let currentSection = null;
+let userRole = "usuario";
+
+// Mostrar modal login
+loginBtn.addEventListener("click", () => {
+  loginModal.hidden = false;
+});
+
+closeLogin.addEventListener("click", () => {
+  loginModal.hidden = true;
+});
+
+// Login con Supabase
+doLogin.addEventListener("click", async () => {
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    alert("❌ Error: " + error.message);
+    return;
+  }
+
+  const { data: userData } = await supabase
+    .from("usuarios")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
+
+  userRole = userData?.role || "usuario";
+
+  username.hidden = false;
+  username.innerText = email;
+  loginBtn.hidden = true;
+  logoutBtn.hidden = false;
+
+  // Mostrar botón editar solo si es admin/tecnico
+  if (["admin", "tecnico"].includes(userRole)) {
+    editBtn.hidden = false;
+  }
+
+  loginModal.hidden = true;
+});
+
+// Logout
+logoutBtn.addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  username.hidden = true;
+  logoutBtn.hidden = true;
+  loginBtn.hidden = false;
+  editBtn.hidden = true;
+});
+
+// Activar modo edición
 editBtn.addEventListener("click", () => {
+  if (!["admin", "tecnico"].includes(userRole)) {
+    alert("❌ No tienes permisos de edición");
+    return;
+  }
   document.querySelectorAll("[data-section]").forEach((el) => {
     el.addEventListener("click", () => {
       currentSection = el.getAttribute("data-section");
