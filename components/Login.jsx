@@ -49,7 +49,6 @@ export default function Login() {
       if (data) {
         setRole(data.role)
       } else {
-        // Si no tiene rol asignado, por defecto es viewer
         setRole('viewer')
       }
     } catch (error) {
@@ -61,30 +60,29 @@ export default function Login() {
   async function signIn() {
     setLoading(true)
     try {
-      // Intentar iniciar sesión con email completo primero
-      let authData = await supabase.auth.signInWithPassword({ 
-        email: email.includes('@') ? email : `${email}@residuos.com`, 
-        password 
-      })
+      // Intentar diferentes formatos de email
+      const loginAttempts = [
+        { email: email, password: password },
+        { email: email.includes('@') ? email : `${email}@residuos.com`, password: password },
+        { email: email.includes('@') ? email : `${email}@gmail.com`, password: password }
+      ];
       
-      // Si falla, intentar con el usuario como email sin dominio
-      if (authData.error && !email.includes('@')) {
-        authData = await supabase.auth.signInWithPassword({ 
-          email: email, 
-          password 
-        })
+      let authData;
+      for (const attempt of loginAttempts) {
+        authData = await supabase.auth.signInWithPassword(attempt);
+        if (!authData.error) break;
       }
       
       if (authData.error) {
-        alert("Credenciales incorrectas. Por favor, intente nuevamente.")
-        console.error('Login error:', authData.error)
+        alert("Email o contraseña incorrectos. Use admin@residuos.com / Admin1234")
       } else {
         setSession(authData.session)
         setShowModal(false)
+        // Recargar la página para actualizar el estado global
+        window.location.reload()
       }
     } catch (error) {
       alert("Error al iniciar sesión. Por favor, intente nuevamente.")
-      console.error('Login exception:', error)
     }
     setLoading(false)
   }
@@ -95,14 +93,25 @@ export default function Login() {
       setSession(null)
       setRole('viewer')
       setEditMode(false)
+      // Recargar la página para actualizar el estado
+      window.location.reload()
     } catch (error) {
       console.error('Logout error:', error)
     }
   }
 
   const toggleEditMode = () => {
-    setEditMode(prev => !prev)
-    // Aquí puedes agregar lógica adicional para el modo edición
+    const newEditMode = !editMode
+    setEditMode(newEditMode)
+    
+    // Aquí puedes agregar lógica para el modo edición
+    if (newEditMode) {
+      document.body.classList.add('edit-mode-active')
+      alert('Modo edición activado')
+    } else {
+      document.body.classList.remove('edit-mode-active')
+      alert('Modo edición desactivado')
+    }
   }
 
   // Si ya hay sesión, mostrar información del usuario
@@ -110,19 +119,21 @@ export default function Login() {
     return (
       <div className="user-info">
         <div className="user-details">
-          <span className="user-name">{session.user.email.split('@')[0]}</span>
+          <span className="user-name">{session.user.email}</span>
           <span className="user-role">{role}</span>
         </div>
         <button onClick={signOut} className="logout-btn" title="Cerrar sesión">
           <i className="fa-solid fa-right-from-bracket"></i>
+          <span className="logout-text">Cerrar sesión</span>
         </button>
         {(role === 'admin' || role === 'tecnico') && (
           <button 
             onClick={toggleEditMode} 
             className={`edit-btn ${editMode ? 'active' : ''}`} 
-            title="Modo edición"
+            title={editMode ? "Desactivar modo edición" : "Activar modo edición"}
           >
             <i className="fa-solid fa-pen-to-square"></i>
+            <span className="edit-text">{editMode ? 'Editando' : 'Editar'}</span>
           </button>
         )}
       </div>
@@ -166,7 +177,7 @@ export default function Login() {
                   <input 
                     id="login-user"
                     type="text" 
-                    placeholder="admin, admin@residuos.com"
+                    placeholder="admin@residuos.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && signIn()}
@@ -181,7 +192,7 @@ export default function Login() {
                   <input 
                     id="login-pass"
                     type="password" 
-                    placeholder="Ingresa tu contraseña"
+                    placeholder="Admin1234"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && signIn()}
@@ -208,7 +219,6 @@ export default function Login() {
               </button>
 
               <div className="auth-hint">
-                <p>💡 Tip: Puedes usar tu nombre de usuario o email completo</p>
               </div>
             </div>
           </div>
