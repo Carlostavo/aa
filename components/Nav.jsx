@@ -5,7 +5,8 @@ export default function Nav(){
   return (
     <nav className="topbar">
       <div className="brand">
-        <i className="fa-solid fa-recycle fa-xl"></i> Gestión RS
+        <i className="fa-solid fa-recycle fa-xl"></i> 
+        <span>Gestión RS</span>
       </div>
       <div className="nav">
         <Link href="/" className="nav-link active" data-page="home">Inicio</Link>
