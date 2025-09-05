@@ -1,0 +1,8 @@
+export default function Indicadores(){
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-primary mb-4">Indicadores</h1>
+      <p>Aquí estarán los indicadores clave.</p>
+    </div>
+  )
+}

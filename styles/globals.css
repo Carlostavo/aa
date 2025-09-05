@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-50 text-gray-800;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+nav {
+  @apply bg-primary text-white p-4 shadow-md;
+}
+
+button {
+  @apply px-4 py-2 rounded-md transition-colors;
+}
