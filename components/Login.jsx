@@ -8,6 +8,7 @@ export default function Login() {
   const [role, setRole] = useState('viewer')
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [editMode, setEditMode] = useState(false)
 
   useEffect(() => {
     // Verificar sesión activa al cargar
@@ -16,12 +17,7 @@ export default function Login() {
       if (session) {
         setSession(session)
         // Obtener rol del usuario
-        const { data } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single()
-        if (data) setRole(data.role)
+        await fetchUserRole(session.user.id)
       }
     }
     getSession()
@@ -31,14 +27,10 @@ export default function Login() {
       async (event, session) => {
         setSession(session)
         if (session) {
-          const { data } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .single()
-          if (data) setRole(data.role)
+          await fetchUserRole(session.user.id)
         } else {
           setRole('viewer')
+          setEditMode(false)
         }
       }
     )
@@ -46,26 +38,71 @@ export default function Login() {
     return () => subscription.unsubscribe()
   }, [])
 
+  const fetchUserRole = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single()
+      
+      if (data) {
+        setRole(data.role)
+      } else {
+        // Si no tiene rol asignado, por defecto es viewer
+        setRole('viewer')
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error)
+      setRole('viewer')
+    }
+  }
+
   async function signIn() {
     setLoading(true)
-    const { data, error } = await supabase.auth.signInWithPassword({ 
-      email: email.includes('@') ? email : `${email}@residuos.com`, 
-      password 
-    })
-    
-    if (error) {
-      alert("Credenciales incorrectas. Por favor, intente nuevamente.")
-    } else {
-      setSession(data.session)
-      setShowModal(false)
+    try {
+      // Intentar iniciar sesión con email completo primero
+      let authData = await supabase.auth.signInWithPassword({ 
+        email: email.includes('@') ? email : `${email}@residuos.com`, 
+        password 
+      })
+      
+      // Si falla, intentar con el usuario como email sin dominio
+      if (authData.error && !email.includes('@')) {
+        authData = await supabase.auth.signInWithPassword({ 
+          email: email, 
+          password 
+        })
+      }
+      
+      if (authData.error) {
+        alert("Credenciales incorrectas. Por favor, intente nuevamente.")
+        console.error('Login error:', authData.error)
+      } else {
+        setSession(authData.session)
+        setShowModal(false)
+      }
+    } catch (error) {
+      alert("Error al iniciar sesión. Por favor, intente nuevamente.")
+      console.error('Login exception:', error)
     }
     setLoading(false)
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
-    setSession(null)
-    setRole('viewer')
+    try {
+      await supabase.auth.signOut()
+      setSession(null)
+      setRole('viewer')
+      setEditMode(false)
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
+
+  const toggleEditMode = () => {
+    setEditMode(prev => !prev)
+    // Aquí puedes agregar lógica adicional para el modo edición
   }
 
   // Si ya hay sesión, mostrar información del usuario
@@ -80,7 +117,11 @@ export default function Login() {
           <i className="fa-solid fa-right-from-bracket"></i>
         </button>
         {(role === 'admin' || role === 'tecnico') && (
-          <button id="toggle-edit" className="edit-btn" title="Modo edición">
+          <button 
+            onClick={toggleEditMode} 
+            className={`edit-btn ${editMode ? 'active' : ''}`} 
+            title="Modo edición"
+          >
             <i className="fa-solid fa-pen-to-square"></i>
           </button>
         )}
@@ -119,13 +160,13 @@ export default function Login() {
 
             <div className="auth-form">
               <div className="input-group">
-                <label htmlFor="login-user">Usuario</label>
+                <label htmlFor="login-user">Usuario o Email</label>
                 <div className="input-with-icon">
                   <i className="fa-solid fa-user"></i>
                   <input 
                     id="login-user"
                     type="text" 
-                    placeholder="Ingresa tu usuario"
+                    placeholder="admin, admin@residuos.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && signIn()}
@@ -165,6 +206,10 @@ export default function Login() {
                   </>
                 )}
               </button>
+
+              <div className="auth-hint">
+                <p>💡 Tip: Puedes usar tu nombre de usuario o email completo</p>
+              </div>
             </div>
           </div>
         </div>
