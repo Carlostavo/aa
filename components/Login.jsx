@@ -54,7 +54,7 @@ export default function Login() {
     })
     
     if (error) {
-      alert(error.message)
+      alert("Credenciales incorrectas. Por favor, intente nuevamente.")
     } else {
       setSession(data.session)
       setShowModal(false)
@@ -72,11 +72,8 @@ export default function Login() {
   if (session) {
     return (
       <div className="user-info">
-        <div className="user-avatar">
-          <i className="fa-solid fa-user"></i>
-        </div>
         <div className="user-details">
-          <span className="user-name">{session.user.email}</span>
+          <span className="user-name">{session.user.email.split('@')[0]}</span>
           <span className="user-role">{role}</span>
         </div>
         <button onClick={signOut} className="logout-btn" title="Cerrar sesión">
@@ -91,15 +88,15 @@ export default function Login() {
     )
   }
 
-  // Si no hay sesión, mostrar botón de login y modal
+  // Si no hay sesión, mostrar botón de login
   return (
     <>
       <button 
-        className="login-btn-floating"
+        className="login-btn-nav"
         onClick={() => setShowModal(true)}
-        title="Iniciar sesión"
       >
-        <i className="fa-solid fa-user"></i>
+        <i className="fa-solid fa-right-to-bracket"></i>
+        <span>Iniciar Sesión</span>
       </button>
 
       {showModal && (
@@ -128,7 +125,7 @@ export default function Login() {
                   <input 
                     id="login-user"
                     type="text" 
-                    placeholder="admin, tecnico o viewer"
+                    placeholder="Ingresa tu usuario"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && signIn()}
@@ -143,7 +140,7 @@ export default function Login() {
                   <input 
                     id="login-pass"
                     type="password" 
-                    placeholder="••••••••"
+                    placeholder="Ingresa tu contraseña"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && signIn()}
@@ -164,7 +161,7 @@ export default function Login() {
                 ) : (
                   <>
                     <i className="fa-solid fa-right-to-bracket"></i>
-                    Entrar al sistema
+                    Iniciar Sesión
                   </>
                 )}
               </button>
