@@ -1,27 +1,66 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { useEdit } from '../contexts/EditContext'
 
-export default function Editor({ slug, initial }){
-  const [content, setContent] = useState(initial)
+export default function Editor({ element, field, onSave }) {
+  const [content, setContent] = useState(element[field] || '')
   const [saving, setSaving] = useState(false)
+  const { editMode } = useEdit()
 
-  async function save(){
+  useEffect(() => {
+    setContent(element[field] || '')
+  }, [element, field])
+
+  const handleSave = async () => {
+    if (!editMode) return
+    
     setSaving(true)
-    const { error } = await supabase.from('paginas').upsert({ slug, content }, { onConflict: 'slug' })
+    try {
+      // Guardar en Supabase
+      const { error } = await supabase
+        .from('paginas')
+        .upsert(
+          { 
+            slug: window.location.pathname,
+            content: JSON.stringify({ ...element, [field]: content }),
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: 'slug' }
+        )
+
+      if (error) {
+        console.error('Error saving:', error)
+        alert('Error al guardar: ' + error.message)
+      } else {
+        if (onSave) onSave(field, content)
+        alert('¡Cambios guardados!')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error al guardar los cambios')
+    }
     setSaving(false)
-    if(error) alert(error.message)
-    else alert('Guardado!')
+  }
+
+  if (!editMode) {
+    return <>{element[field] || ''}</>
   }
 
   return (
-    <div>
+    <div className="editor-container">
       <textarea
         value={content}
-        onChange={e=>setContent(e.target.value)}
-        className="w-full h-40 border rounded p-2"
+        onChange={(e) => setContent(e.target.value)}
+        className="editor-textarea"
+        rows={field === 'desc' ? 3 : 2}
+        placeholder={`Editar ${field === 'title' ? 'título' : 'descripción'}`}
       />
-      <button onClick={save} disabled={saving} className="bg-primary text-white mt-2">
-        {saving ? 'Guardando...' : 'Guardar'}
+      <button 
+        onClick={handleSave} 
+        disabled={saving}
+        className="editor-save-btn"
+      >
+        {saving ? '💾 Guardando...' : '💾 Guardar'}
       </button>
     </div>
   )
