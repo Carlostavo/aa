@@ -20,12 +20,17 @@ export default function Home(){
     const getRole = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
-        const { data } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .single()
-        if (data) setRole(data.role)
+        try {
+          const { data } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .single()
+          if (data) setRole(data.role)
+        } catch (error) {
+          console.error('Error fetching role:', error)
+          setRole('viewer')
+        }
       }
     }
     getRole()
