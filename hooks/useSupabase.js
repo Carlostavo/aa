@@ -1,36 +1,44 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
-export const useSupabase = () => {
-  const [session, setSession] = useState(null);
-  const [userRole, setUserRole] = useState('viewer');
+export default function Login() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [session, setSession] = useState(null)
+  const [role, setRole] = useState('viewer')
+  const [showModal, setShowModal] = useState(false)
+  const [loading, setLoading] = useState(false)
 
+  // Cargar sesión al iniciar
   useEffect(() => {
-    // Obtener sesión actual
-    const getSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        if (session) await fetchUserRole(session.user.id);
-      } catch (error) {
-        console.error('Error getting session:', error);
-      }
-    };
+    checkSession()
     
-    getSession();
-
     // Escuchar cambios de autenticación
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
-      if (session) {
-        await fetchUserRole(session.user.id);
-      } else {
-        setUserRole('viewer');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session)
+        if (session) {
+          await fetchUserRole(session.user.id)
+        } else {
+          setRole('viewer')
+        }
       }
-    });
+    )
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const checkSession = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      setSession(session)
+      if (session) {
+        await fetchUserRole(session.user.id)
+      }
+    } catch (error) {
+      console.error('Error checking session:', error)
+    }
+  }
 
   const fetchUserRole = async (userId) => {
     try {
@@ -38,101 +46,164 @@ export const useSupabase = () => {
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single();
+        .single()
       
       if (data) {
-        setUserRole(data.role);
+        setRole(data.role)
       } else {
-        setUserRole('viewer');
+        setRole('viewer')
       }
     } catch (error) {
-      console.error('Error fetching user role:', error);
-      setUserRole('viewer');
+      console.error('Error fetching user role:', error)
+      setRole('viewer')
     }
-  };
+  }
 
-  const saveCanvas = async (slug, content) => {
+  const handleSignIn = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    
     try {
-      const { data, error } = await supabase
-        .from('paginas')
-        .upsert(
-          { 
-            slug, 
-            content: JSON.stringify(content),
-            updated_at: new Date().toISOString()
-          },
-          { 
-            onConflict: 'slug',
-            returning: 'minimal'
-          }
-        );
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.includes('@') ? email : `${email}@residuos.com`,
+        password
+      })
 
       if (error) {
-        console.error('Error saving canvas:', error);
-        throw error;
+        alert("Credenciales incorrectas. Use admin@residuos.com / Admin1234")
+      } else {
+        setShowModal(false)
+        setEmail('')
+        setPassword('')
+        // Recargar la página para actualizar el estado completamente
+        window.location.reload()
       }
-      return data;
     } catch (error) {
-      console.error('Error in saveCanvas:', error);
-      throw error;
+      alert("Error al iniciar sesión. Por favor, intente nuevamente.")
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
-  const loadCanvas = async (slug) => {
+  const handleSignOut = async () => {
     try {
-      const { data, error } = await supabase
-        .from('paginas')
-        .select('content')
-        .eq('slug', slug)
-        .maybeSingle(); // Usar maybeSingle en lugar de single
-
+      const { error } = await supabase.auth.signOut()
       if (error) {
-        console.error('Error loading canvas:', error);
-        return { items: [] };
+        console.error('Error al cerrar sesión:', error)
+        alert('Error al cerrar sesión. Por favor, intenta nuevamente.')
+        return
       }
-
-      // Si no hay datos o el contenido está vacío
-      if (!data || !data.content) {
-        return { items: [] };
-      }
-
-      // Validar y parsear el contenido JSON
-      try {
-        const parsed = JSON.parse(data.content);
-        // Asegurarse de que tenga la estructura correcta
-        return Array.isArray(parsed.items) ? parsed : { items: [] };
-      } catch (parseError) {
-        console.error('Error parsing JSON content:', parseError, 'Content:', data.content);
-        // Si el contenido no es JSON válido, devolver estructura vacía
-        return { items: [] };
-      }
-    } catch (error) {
-      console.error('Error in loadCanvas:', error);
-      return { items: [] };
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
       
-      // Limpiar el estado local
-      setSession(null);
-      setUserRole('viewer');
+      // Forzar recarga completa de la página
+      window.location.href = '/'
       
-      return true;
     } catch (error) {
-      console.error('Error signing out:', error);
-      throw error;
+      console.error('Error inesperado al cerrar sesión:', error)
+      alert('Error inesperado al cerrar sesión.')
     }
-  };
+  }
 
-  return {
-    session,
-    userRole,
-    saveCanvas,
-    loadCanvas,
-    signOut
-  };
-};
+  if (session) {
+    return (
+      <div className="user-info">
+        <div className="user-details">
+          <span className="user-name">{session.user.email}</span>
+          <span className="user-role">{role}</span>
+        </div>
+        <button onClick={handleSignOut} className="logout-btn" title="Cerrar sesión">
+          <i className="fa-solid fa-right-from-bracket"></i>
+          <span className="logout-text">Cerrar sesión</span>
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <button 
+        className="login-btn-nav"
+        onClick={() => setShowModal(true)}
+      >
+        <i className="fa-solid fa-right-to-bracket"></i>
+        <span>Iniciar Sesión</span>
+      </button>
+
+      {showModal && (
+        <div className="auth-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="auth-modal" onClick={e => e.stopPropagation()}>
+            <button 
+              className="modal-close-btn"
+              onClick={() => setShowModal(false)}
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div className="auth-header">
+              <div className="auth-icon">
+                <i className="fa-solid fa-lock"></i>
+              </div>
+              <h2>Iniciar Sesión</h2>
+              <p>Ingresa tus credenciales para acceder al sistema</p>
+            </div>
+
+            <form onSubmit={handleSignIn} className="auth-form">
+              <div className="input-group">
+                <label htmlFor="login-user">Usuario o Email</label>
+                <div className="input-with-icon">
+                  <i className="fa-solid fa-user"></i>
+                  <input 
+                    id="login-user"
+                    type="text" 
+                    placeholder="admin@residuos.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="login-pass">Contraseña</label>
+                <div className="input-with-icon">
+                  <i className="fa-solid fa-key"></i>
+                  <input 
+                    id="login-pass"
+                    type="password" 
+                    placeholder="Admin1234"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit"
+                disabled={loading}
+                className="auth-submit-btn"
+              >
+                {loading ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    Iniciando sesión...
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-right-to-bracket"></i>
+                    Iniciar Sesión
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="auth-hint">
+              <p>💡 Use: admin@residuos.com / Admin1234</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
