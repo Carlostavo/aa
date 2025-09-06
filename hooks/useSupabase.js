@@ -32,6 +32,7 @@ export const useSupabase = () => {
         .single();
       
       if (data) setUserRole(data.role);
+      else setUserRole('viewer');
     } catch (error) {
       setUserRole('viewer');
     }
@@ -50,10 +51,13 @@ export const useSupabase = () => {
           { onConflict: 'slug' }
         );
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving canvas:', error);
+        throw error;
+      }
       return data;
     } catch (error) {
-      console.error('Error saving canvas:', error);
+      console.error('Error in saveCanvas:', error);
       throw error;
     }
   };
@@ -66,11 +70,27 @@ export const useSupabase = () => {
         .eq('slug', slug)
         .single();
 
-      if (error) throw error;
-      return data ? JSON.parse(data.content) : null;
+      if (error) {
+        console.error('Error loading canvas:', error);
+        return { items: [] };
+      }
+
+      if (!data || !data.content) {
+        return { items: [] };
+      }
+
+      // Validar y parsear el contenido JSON
+      try {
+        const parsed = JSON.parse(data.content);
+        return parsed;
+      } catch (parseError) {
+        console.error('Error parsing JSON content:', parseError);
+        // Si el contenido no es JSON válido, devolver estructura vacía
+        return { items: [] };
+      }
     } catch (error) {
-      console.error('Error loading canvas:', error);
-      return null;
+      console.error('Error in loadCanvas:', error);
+      return { items: [] };
     }
   };
 
