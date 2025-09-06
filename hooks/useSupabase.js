@@ -7,10 +7,17 @@ export const useSupabase = () => {
 
   useEffect(() => {
     // Obtener sesión actual
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) fetchUserRole(session.user.id);
-    });
+    const getSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        if (session) await fetchUserRole(session.user.id);
+      } catch (error) {
+        console.error('Error getting session:', error);
+      }
+    };
+    
+    getSession();
 
     // Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -33,10 +40,75 @@ export const useSupabase = () => {
         .eq('user_id', userId)
         .single();
       
-      if (data) setUserRole(data.role);
-      else setUserRole('viewer');
+      if (data) {
+        setUserRole(data.role);
+      } else {
+        setUserRole('viewer');
+      }
     } catch (error) {
+      console.error('Error fetching user role:', error);
       setUserRole('viewer');
+    }
+  };
+
+  const saveCanvas = async (slug, content) => {
+    try {
+      const { data, error } = await supabase
+        .from('paginas')
+        .upsert(
+          { 
+            slug, 
+            content: JSON.stringify(content),
+            updated_at: new Date().toISOString()
+          },
+          { 
+            onConflict: 'slug',
+            returning: 'minimal'
+          }
+        );
+
+      if (error) {
+        console.error('Error saving canvas:', error);
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error in saveCanvas:', error);
+      throw error;
+    }
+  };
+
+  const loadCanvas = async (slug) => {
+    try {
+      const { data, error } = await supabase
+        .from('paginas')
+        .select('content')
+        .eq('slug', slug)
+        .maybeSingle(); // Usar maybeSingle en lugar de single
+
+      if (error) {
+        console.error('Error loading canvas:', error);
+        return { items: [] };
+      }
+
+      // Si no hay datos o el contenido está vacío
+      if (!data || !data.content) {
+        return { items: [] };
+      }
+
+      // Validar y parsear el contenido JSON
+      try {
+        const parsed = JSON.parse(data.content);
+        // Asegurarse de que tenga la estructura correcta
+        return Array.isArray(parsed.items) ? parsed : { items: [] };
+      } catch (parseError) {
+        console.error('Error parsing JSON content:', parseError, 'Content:', data.content);
+        // Si el contenido no es JSON válido, devolver estructura vacía
+        return { items: [] };
+      }
+    } catch (error) {
+      console.error('Error in loadCanvas:', error);
+      return { items: [] };
     }
   };
 
@@ -56,12 +128,11 @@ export const useSupabase = () => {
     }
   };
 
-  // ... otras funciones (saveCanvas, loadCanvas)
-
   return {
     session,
     userRole,
-    signOut,
-    // ... otras funciones
+    saveCanvas,
+    loadCanvas,
+    signOut
   };
 };
