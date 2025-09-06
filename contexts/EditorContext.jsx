@@ -27,18 +27,23 @@ export const EditorProvider = ({ children, pageSlug }) => {
   const loadInitialContent = async () => {
     setLoading(true);
     try {
+      console.log('Loading content for page:', pageSlug);
       const content = await loadCanvas(pageSlug);
-      if (content && content.items) {
+      console.log('Loaded content:', content);
+      
+      if (content && Array.isArray(content.items)) {
         setCanvasItems(content.items);
         setHistory([content.items]);
         setHistoryIndex(0);
       } else {
+        // Estructura por defecto
         setCanvasItems([]);
         setHistory([[]]);
         setHistoryIndex(0);
       }
     } catch (error) {
       console.error('Error loading initial content:', error);
+      // En caso de error, establecer valores por defecto
       setCanvasItems([]);
       setHistory([[]]);
       setHistoryIndex(0);
@@ -48,7 +53,11 @@ export const EditorProvider = ({ children, pageSlug }) => {
   };
 
   const addItem = (item) => {
-    const newItems = [...canvasItems, { ...item, id: Date.now().toString() }];
+    const newItem = {
+      ...item,
+      id: item.id || Date.now().toString() + Math.random().toString(36).substr(2, 9)
+    };
+    const newItems = [...canvasItems, newItem];
     setCanvasItems(newItems);
     addToHistory(newItems);
   };
@@ -72,38 +81,47 @@ export const EditorProvider = ({ children, pageSlug }) => {
 
   const addToHistory = (items) => {
     const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(items);
+    newHistory.push([...items]); // Crear copia para evitar referencia
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
   };
 
   const undo = () => {
     if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setCanvasItems(history[historyIndex - 1]);
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setCanvasItems([...history[newIndex]]);
     }
   };
 
   const redo = () => {
     if (historyIndex < history.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setCanvasItems(history[historyIndex + 1]);
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setCanvasItems([...history[newIndex]]);
     }
   };
 
   const saveChanges = async () => {
     try {
+      console.log('Saving changes for page:', pageSlug, canvasItems);
       await saveCanvas(pageSlug, { items: canvasItems });
       setEditMode(false);
+      alert('Cambios guardados correctamente!');
     } catch (error) {
       console.error('Error saving changes:', error);
       alert('Error al guardar los cambios. Por favor, intenta nuevamente.');
     }
   };
 
-  const discardChanges = () => {
-    loadInitialContent();
-    setEditMode(false);
+  const discardChanges = async () => {
+    try {
+      await loadInitialContent();
+      setEditMode(false);
+      alert('Cambios descartados.');
+    } catch (error) {
+      console.error('Error discarding changes:', error);
+    }
   };
 
   const value = {
