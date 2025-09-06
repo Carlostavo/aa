@@ -6,11 +6,13 @@ export const useSupabase = () => {
   const [userRole, setUserRole] = useState('viewer');
 
   useEffect(() => {
+    // Obtener sesión actual
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) fetchUserRole(session.user.id);
     });
 
+    // Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       if (session) {
@@ -38,71 +40,28 @@ export const useSupabase = () => {
     }
   };
 
-  const saveCanvas = async (slug, content) => {
+  const signOut = async () => {
     try {
-      const { data, error } = await supabase
-        .from('paginas')
-        .upsert(
-          { 
-            slug, 
-            content: JSON.stringify(content),
-            updated_at: new Date().toISOString()
-          },
-          { onConflict: 'slug' }
-        );
-
-      if (error) {
-        console.error('Error saving canvas:', error);
-        throw error;
-      }
-      return data;
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Limpiar el estado local
+      setSession(null);
+      setUserRole('viewer');
+      
+      return true;
     } catch (error) {
-      console.error('Error in saveCanvas:', error);
+      console.error('Error signing out:', error);
       throw error;
     }
   };
 
-  const loadCanvas = async (slug) => {
-    try {
-      const { data, error } = await supabase
-        .from('paginas')
-        .select('content')
-        .eq('slug', slug)
-        .single();
-
-      if (error) {
-        console.error('Error loading canvas:', error);
-        return { items: [] };
-      }
-
-      if (!data || !data.content) {
-        return { items: [] };
-      }
-
-      // Validar y parsear el contenido JSON
-      try {
-        const parsed = JSON.parse(data.content);
-        return parsed;
-      } catch (parseError) {
-        console.error('Error parsing JSON content:', parseError);
-        // Si el contenido no es JSON válido, devolver estructura vacía
-        return { items: [] };
-      }
-    } catch (error) {
-      console.error('Error in loadCanvas:', error);
-      return { items: [] };
-    }
-  };
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
+  // ... otras funciones (saveCanvas, loadCanvas)
 
   return {
     session,
     userRole,
-    saveCanvas,
-    loadCanvas,
-    signOut
+    signOut,
+    // ... otras funciones
   };
 };
