@@ -17,6 +17,7 @@ export const EditorProvider = ({ children, pageSlug }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [loading, setLoading] = useState(true);
   const { saveCanvas, loadCanvas } = useSupabase();
 
   useEffect(() => {
@@ -24,11 +25,25 @@ export const EditorProvider = ({ children, pageSlug }) => {
   }, [pageSlug]);
 
   const loadInitialContent = async () => {
-    const content = await loadCanvas(pageSlug);
-    if (content && content.items) {
-      setCanvasItems(content.items);
-      setHistory([content.items]);
+    setLoading(true);
+    try {
+      const content = await loadCanvas(pageSlug);
+      if (content && content.items) {
+        setCanvasItems(content.items);
+        setHistory([content.items]);
+        setHistoryIndex(0);
+      } else {
+        setCanvasItems([]);
+        setHistory([[]]);
+        setHistoryIndex(0);
+      }
+    } catch (error) {
+      console.error('Error loading initial content:', error);
+      setCanvasItems([]);
+      setHistory([[]]);
       setHistoryIndex(0);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,8 +92,13 @@ export const EditorProvider = ({ children, pageSlug }) => {
   };
 
   const saveChanges = async () => {
-    await saveCanvas(pageSlug, { items: canvasItems });
-    setEditMode(false);
+    try {
+      await saveCanvas(pageSlug, { items: canvasItems });
+      setEditMode(false);
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      alert('Error al guardar los cambios. Por favor, intenta nuevamente.');
+    }
   };
 
   const discardChanges = () => {
@@ -101,7 +121,8 @@ export const EditorProvider = ({ children, pageSlug }) => {
     canUndo: historyIndex > 0,
     canRedo: historyIndex < history.length - 1,
     saveChanges,
-    discardChanges
+    discardChanges,
+    loading
   };
 
   return (
