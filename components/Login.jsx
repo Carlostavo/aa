@@ -1,70 +1,95 @@
-import { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [session, setSession] = useState(null)
+  const [role, setRole] = useState('viewer')
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const { user, role, editMode, signIn, signOut, toggleEditMode } = useAuth()
 
-  const handleSignIn = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    
-    const result = await signIn(email, password)
-    
-    if (result.success) {
-      setShowModal(false)
-      setEmail('')
-      setPassword('')
-    } else {
-      setError(result.error || 'Error al iniciar sesión')
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        setSession(session)
+        await fetchUserRole(session.user.id)
+      }
     }
-    
+    getSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session)
+        if (session) {
+          await fetchUserRole(session.user.id)
+        } else {
+          setRole('viewer')
+        }
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const fetchUserRole = async (userId) => {
+    try {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single()
+      if (data) setRole(data.role)
+    } catch (error) {
+      setRole('viewer')
+    }
+  }
+
+  async function signIn() {
+    setLoading(true)
+    try {
+      const authData = await supabase.auth.signInWithPassword({ 
+        email: email.includes('@') ? email : `${email}@residuos.com`, 
+        password 
+      })
+      
+      if (authData.error) {
+        alert("Credenciales incorrectas. Use admin@residuos.com / Admin1234")
+      } else {
+        setSession(authData.session)
+        setShowModal(false)
+      }
+    } catch (error) {
+      alert("Error al iniciar sesión")
+    }
     setLoading(false)
   }
 
-  const handleSignOut = async () => {
-    const result = await signOut()
-    if (!result.success) {
-      console.error('Logout error:', result.error)
-    }
+  async function signOut() {
+    await supabase.auth.signOut()
+    setSession(null)
+    setRole('viewer')
   }
 
-  if (user) {
+  if (session) {
     return (
       <div className="user-info">
         <div className="user-details">
-          <span className="user-name">{user.email}</span>
+          <span className="user-name">{session.user.email}</span>
           <span className="user-role">{role}</span>
         </div>
-        <button onClick={handleSignOut} className="logout-btn" title="Cerrar sesión">
+        <button onClick={signOut} className="logout-btn" title="Cerrar sesión">
           <i className="fa-solid fa-right-from-bracket"></i>
           <span className="logout-text">Cerrar sesión</span>
         </button>
-        {(role === 'admin' || role === 'tecnico') && (
-          <button 
-            onClick={toggleEditMode} 
-            className={`edit-btn ${editMode ? 'active' : ''}`} 
-            title={editMode ? "Desactivar modo edición" : "Activar modo edición"}
-          >
-            <i className={`fa-solid ${editMode ? 'fa-check' : 'fa-pen-to-square'}`}></i>
-            <span className="edit-text">{editMode ? 'Editando' : 'Editar'}</span>
-          </button>
-        )}
       </div>
     )
   }
 
   return (
     <>
-      <button 
-        className="login-btn-nav"
-        onClick={() => setShowModal(true)}
-      >
+      <button className="login-btn-nav" onClick={() => setShowModal(true)}>
         <i className="fa-solid fa-right-to-bracket"></i>
         <span>Iniciar Sesión</span>
       </button>
@@ -72,11 +97,7 @@ export default function Login() {
       {showModal && (
         <div className="auth-modal-overlay" onClick={() => setShowModal(false)}>
           <div className="auth-modal" onClick={e => e.stopPropagation()}>
-            <button 
-              className="modal-close-btn"
-              onClick={() => setShowModal(false)}
-              aria-label="Cerrar modal"
-            >
+            <button className="modal-close-btn" onClick={() => setShowModal(false)}>
               <i className="fa-solid fa-xmark"></i>
             </button>
             
@@ -85,70 +106,41 @@ export default function Login() {
                 <i className="fa-solid fa-lock"></i>
               </div>
               <h2>Iniciar Sesión</h2>
-              <p>Ingresa tus credenciales para acceder al sistema</p>
             </div>
 
-            <form className="auth-form" onSubmit={handleSignIn}>
+            <div className="auth-form">
               <div className="input-group">
-                <label htmlFor="login-user">Usuario o Email</label>
+                <label>Email</label>
                 <div className="input-with-icon">
                   <i className="fa-solid fa-user"></i>
                   <input 
-                    id="login-user"
-                    type="email" 
+                    type="text" 
                     placeholder="admin@residuos.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required
+                    onKeyPress={(e) => e.key === 'Enter' && signIn()}
                   />
                 </div>
               </div>
 
               <div className="input-group">
-                <label htmlFor="login-pass">Contraseña</label>
+                <label>Contraseña</label>
                 <div className="input-with-icon">
                   <i className="fa-solid fa-key"></i>
                   <input 
-                    id="login-pass"
                     type="password" 
-                    placeholder="••••••••"
+                    placeholder="Admin1234"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
+                    onKeyPress={(e) => e.key === 'Enter' && signIn()}
                   />
                 </div>
               </div>
 
-              {error && (
-                <div className="auth-error">
-                  <i className="fa-solid fa-circle-exclamation"></i>
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <button 
-                type="submit"
-                disabled={loading}
-                className="auth-submit-btn"
-              >
-                {loading ? (
-                  <>
-                    <i className="fa-solid fa-spinner fa-spin"></i>
-                    Iniciando sesión...
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-right-to-bracket"></i>
-                    Iniciar Sesión
-                  </>
-                )}
+              <button onClick={signIn} disabled={loading} className="auth-submit-btn">
+                {loading ? 'Iniciando...' : 'Iniciar Sesión'}
               </button>
-
-              <div className="auth-hint">
-                <p>Credenciales de prueba: admin@residuos.com / Admin1234</p>
-              </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
